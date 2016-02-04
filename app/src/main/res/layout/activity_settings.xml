@@ -1,0 +1,118 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.example.dhaejong.acp2.Settings"
+    android:id="@+id/top">
+
+    <TextView
+        android:text="@string/settings_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_margin="10dp"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:id="@+id/textView" />
+
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentStart="true"
+        android:id="@+id/view"/>
+
+    <RelativeLayout
+        android:layout_alignParentStart="true"
+        android:layout_weight="1"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="5dp"
+        android:layout_below="@+id/top"
+        android:id="@+id/middle">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_text2"
+            android:layout_marginStart="5sp"
+            android:layout_marginTop="5dp"
+            android:textSize="30sp"
+            android:layout_alignParentStart="true"
+            android:orientation="horizontal"
+            android:id="@+id/textView2" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_add_black_24dp"
+            app:layout_anchorGravity="bottom|right|end"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_alignTop="@+id/textView2"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="33dp"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            app:backgroundTint="#FF0000"/>
+
+
+
+        <ScrollView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/ScrollView"
+            android:fillViewport="false"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="#FFFFFF"
+            android:baselineAligned="false"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/textView2">
+
+            <LinearLayout
+                android:id="@+id/ButtonsLayout"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+
+
+
+
+
+            </LinearLayout>
+
+
+
+
+
+        </ScrollView>
+
+
+    </RelativeLayout >
+    <LinearLayout
+        android:layout_alignParentStart="true"
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="5dp"
+        android:layout_below="@+id/middle"
+        android:id="@+id/bottom">
+
+    </LinearLayout>
+
+
+
+</LinearLayout >

@@ -1,0 +1,2 @@
+include ':app', ':cheesesquare'
+project(':cheesesquare').projectDir = new File('libraries/cheesesquare/app')
