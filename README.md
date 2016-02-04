@@ -1,1 +1,1 @@
-# mobile-keepYouUptodated-application
+# acp2 mobile client application
