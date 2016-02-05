@@ -3,18 +3,25 @@ package com.example.dhaejong.acp2;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private int is_firsttime = 0;
+    private String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         if(is_firsttime == 1){
 
             Intent intent = new Intent(this, Main2Activity.class);

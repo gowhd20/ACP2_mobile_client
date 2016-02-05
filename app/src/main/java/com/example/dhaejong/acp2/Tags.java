@@ -22,10 +22,11 @@ public class Tags {
     private ArrayList<String> tag_names;
     private Context context;
     private String[] tags;
-    public int countTags = 0;
     private int txtId = 0;
     private int btnId = 0;
     private Activity activity;
+
+    public int countTags = 0;
 
     public void Tags(Context context, Activity activity){
         this.context = context;

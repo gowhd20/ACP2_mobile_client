@@ -25,4 +25,7 @@ dependencies {
     compile 'com.melnykov:floatingactionbutton:1.2.0'
     compile 'com.android.support:design:23.1.1'
     compile 'com.jakewharton:butterknife:6.0.0'
+    compile 'com.quinny898.library.persistentsearch:library:1.1.0-SNAPSHOT'
+    compile 'org.mongodb:mongo-java-driver:3.2.1'
+
 }

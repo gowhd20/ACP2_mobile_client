@@ -1,2 +1,4 @@
-include ':app', ':cheesesquare'
+include ':app', ':cheesesquare', ':library', ':sample'
 project(':cheesesquare').projectDir = new File('libraries/cheesesquare/app')
+project(':library').projectDir = new File('libraries/PersistentSearch/library')
+project(':sample').projectDir = new File('libraries/PersistentSearch/sample')

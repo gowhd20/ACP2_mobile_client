@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Acp22.iml" filepath="$PROJECT_DIR$/Acp22.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ACP2_mobile_client.iml" filepath="$PROJECT_DIR$/ACP2_mobile_client.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/cheesesquare/app/cheesesquare.iml" filepath="$PROJECT_DIR$/libraries/cheesesquare/app/cheesesquare.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libraries/PersistentSearch/library/library.iml" filepath="$PROJECT_DIR$/libraries/PersistentSearch/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libraries/PersistentSearch/sample/sample.iml" filepath="$PROJECT_DIR$/libraries/PersistentSearch/sample/sample.iml" />
     </modules>
   </component>
 </project>
