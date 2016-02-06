@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onResultClick(SearchResult result) {
 				//React to a result being clicked
+				Toast.makeText(MainActivity.this, result +" what the fuck", Toast.LENGTH_LONG).show();
 			}
 
 			@Override

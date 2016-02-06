@@ -21,14 +21,13 @@ public class Tags {
 
     private ArrayList<String> tag_names;
     private Context context;
-    private String[] tags;
     private int txtId = 0;
     private int btnId = 0;
     private Activity activity;
 
-    public int countTags = 0;
+    public String[] tags;
 
-    public void Tags(Context context, Activity activity){
+    Tags(Context context, Activity activity){
         this.context = context;
         this.activity = activity;
 
@@ -58,7 +57,11 @@ public class Tags {
 
     }
 
-    public ImageButton addTag(Context context, String tagName){
+    public int getNumberOfTags(){
+        return tags.length;
+    }
+
+    public ImageButton addTagToInterest(Context context, String tagName){
 
         LinearLayout outerLayout = (LinearLayout)this.activity.findViewById(R.id.ButtonsLayout);
         TextView mTextView = new TextView(context);
@@ -82,7 +85,6 @@ public class Tags {
         mImageBtn.setBackgroundColor(Color.parseColor("#FFFFFF"));
         mImageBtn.setId(this.btnId);
 
-        this.countTags = this.countTags+1;
         this.txtId = this.txtId+1;
         this.btnId = this.btnId+1;
 

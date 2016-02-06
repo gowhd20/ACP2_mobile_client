@@ -29,12 +29,11 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         floatingBtn();
         this.context = this;
 
-        mTags = new Tags();
-        mTags.Tags(Settings.this, this);
-        newButton = mTags.addTag(this, "Science");
+        mTags = new Tags(Settings.this, this);
+        newButton = mTags.addTagToInterest(this, "Science");
         newButton.setOnClickListener(this);
-        int a = newButton.getId();
-        newButton = mTags.addTag(this, "Party");
+
+        newButton = mTags.addTagToInterest(this, "Party");
         newButton.setOnClickListener(this);
     }
 
@@ -66,6 +65,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         }
     }
 
+    // tag add button clicked
     public void floatingBtn(){
         android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -80,7 +80,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         });
     }
 
-    // tag add button clicked
 
     @Override
     public void onClick(View view){
