@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    private int is_firsttime = 0;
+    private int isFirstTime = 0;
     private String TAG = "MainActivity";
 
     @Override
@@ -29,13 +29,11 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(is_firsttime == 1){
+        if(isFirstTime == 1){
 
             Intent intent = new Intent(this, Main2Activity.class);
             startActivity(intent);
         }
-
-
 
 
 
@@ -56,11 +54,16 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_settings:
-                // User chose the "Settings" item, show the app settings UI...
-
-                Intent intent = new Intent(this, Settings.class);
-                startActivity(intent);
-                return true;
+                if(!Main2Activity.isSettingsActivityActive) {
+                    Intent intent = new Intent(this, Settings.class);
+                    Main2Activity.isSettingsActivityActive = true;
+                    Log.i(TAG, "Settings.java is starting");
+                    startActivity(intent);
+                    return true;
+                }else{
+                    Toast.makeText(MainActivity.this," Settings.java is already running", Toast.LENGTH_LONG).show();
+                    return false;
+                }
 
             default:
                 // If we got here, the user's action was not recognized.
@@ -69,4 +72,5 @@ public class MainActivity extends ActionBarActivity {
 
         }
     }
+
 }

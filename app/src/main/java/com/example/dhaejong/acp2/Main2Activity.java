@@ -1,13 +1,19 @@
 package com.example.dhaejong.acp2;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 
 public class Main2Activity extends ActionBarActivity {
+
+    private String TAG = "Main2Activity";
+    public static boolean isSettingsActivityActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +37,16 @@ public class Main2Activity extends ActionBarActivity {
             case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
 
-                Intent intent = new Intent(this, Settings.class);
-                startActivity(intent);
-                return true;
+                if(isSettingsActivityActive) {
+                    Intent intent = new Intent(this, Settings.class);
+                    Main2Activity.isSettingsActivityActive = true;
+                    Log.i(TAG, "Settings.java is starting");
+                    startActivity(intent);
+                    return true;
+                }else{
+                    Toast.makeText(Main2Activity.this, " Settings.java is already running", Toast.LENGTH_LONG).show();
+                    return false;
+                }
 
             default:
                 // If we got here, the user's action was not recognized.

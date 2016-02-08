@@ -34,7 +34,7 @@ public class LocalDB extends SQLiteOpenHelper{
 
     LocalDB(Context context){
         super(context, DATABASE_TABLE_NAME, null, DATABASE_VERSION);
-        m_context = context;
+        this.m_context = context;
     }
 
     @Override

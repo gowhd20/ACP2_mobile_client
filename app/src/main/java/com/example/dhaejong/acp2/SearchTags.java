@@ -8,6 +8,7 @@ import android.speech.RecognizerIntent;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +37,7 @@ public class SearchTags extends ActionBarActivity {
     private Context context;
     private LocalDB mLocalDB;
     private Tags mTags;
+    private String TAG = "SearchTags";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +51,65 @@ public class SearchTags extends ActionBarActivity {
 
         setSearchBar(mTags.getNumberOfTags());
     }
-    
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_search_tags, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            if(!Main2Activity.isSettingsActivityActive) {
+                Intent intent = new Intent(this, Settings.class);
+                Main2Activity.isSettingsActivityActive = true;
+                Log.i(TAG, "Settings.java is starting");
+                startActivity(intent);
+                return true;
+            }else{
+                Toast.makeText(SearchTags.this," Settings.java is already running", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    protected void callDialog(SearchResult tagName){
+
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.item_selected_popup_window);
+        dialog.setTitle("Adding " + tagName + " tag");
+
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.text);
+        text.setText("Would you like to add '" + tagName + "' Tag to your tag list?");
+        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+        image.setImageResource(R.drawable.ic_image_black_24dp);
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        dialogButton.setTag(tagName);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                sendBackTagName(v.getTag().toString());
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
 
     public void setSearchBar(int countTags){
 
@@ -73,7 +133,7 @@ public class SearchTags extends ActionBarActivity {
         });
 
         // item listener
-        search.setSearchListener(new SearchListener(){
+        search.setSearchListener(new SearchListener() {
 
             @Override
             public void onSearchOpened() {
@@ -93,35 +153,12 @@ public class SearchTags extends ActionBarActivity {
 
             @Override
             public void onSearch(String searchTerm) {
-                Toast.makeText(SearchTags.this, searchTerm +" Searched", Toast.LENGTH_LONG).show();
+                Toast.makeText(SearchTags.this, searchTerm + " Searched", Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onResultClick(SearchResult result) {
-                //React to a result being clicked
-                Toast.makeText(SearchTags.this, result +" what the fuck", Toast.LENGTH_LONG).show();
-
-                // custom dialog
-                final Dialog dialog = new Dialog(context);
-                dialog.setContentView(R.layout.item_selected_popup_window);
-                dialog.setTitle("Title...");
-
-                // set the custom dialog components - text, image and button
-                TextView text = (TextView) dialog.findViewById(R.id.text);
-                text.setText("Android custom dialog example!");
-                ImageView image = (ImageView) dialog.findViewById(R.id.image);
-                image.setImageResource(R.drawable.ic_image_black_24dp);
-
-                Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-                // if button is clicked, close the custom dialog
-                dialogButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-
-                dialog.show();
+                callDialog(result);
 
             }
 
@@ -149,42 +186,15 @@ public class SearchTags extends ActionBarActivity {
 
     }
 
-    public void setSearchListner(){
+    protected void sendBackTagName(String tagName){
+        Bundle tag = new Bundle();
+        tag.putString("tag_name", tagName);
+        Intent intent = new Intent();
+        intent.putExtras(tag);
 
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_search_tags, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SearchBox.VOICE_RECOGNITION_CODE && resultCode == SearchTags.this.RESULT_OK) {
-            ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            for(int i=0; i<matches.size(); i++) {
-                search.populateEditText(matches.get(i));
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
 
 }
