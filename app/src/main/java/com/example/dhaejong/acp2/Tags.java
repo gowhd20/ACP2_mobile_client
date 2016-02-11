@@ -1,6 +1,8 @@
 package com.example.dhaejong.acp2;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -25,16 +27,22 @@ public class Tags {
     private ArrayList<String> tag_names;
     private Context context;
     private Activity activity;
+    public final static int TEXTVIEW_IDENTIFIER = 111111;
 
     public int countTagsInList;      // count of tags in the interest list
     public String[] tags;
+    public String[] tempAddedTags;
+    public LocalDB mLocalDB;
 
     Tags(Context context, Activity activity){
         this.context = context;
         this.activity = activity;
         this.countTagsInList = 0;
+        this.mLocalDB = new LocalDB(context);
+        mLocalDB.deleteTable("Tags");           // for test purpose *******************************//
 
         this.tags = new String[]{"science", "party", "education", "job", "course", "music"};
+        this.tempAddedTags = new String[]{};
         this.tag_names = new ArrayList<>();
         tag_names.addAll(Arrays.asList(tags));
 
@@ -76,63 +84,81 @@ public class Tags {
 
     }
 
-    public int getAvailableId(Context context){
-        int idCandidate = this.countTagsInList;
-
-        while(idCandidate>0) {
-            if(!isExistingId(idCandidate, context)){
-                Log.i(TAG, "im selected "+ Integer.toString(idCandidate));
-                return idCandidate;
-            }else {
-                idCandidate--;
-            }
-        }
-        return ++idCandidate;
-    }
-
     public int getNumberOfTags(){
         return this.tags.length;
     }
 
-    public boolean isExistingId(int id, Context context){
-        int checkExistence = context.getResources().getIdentifier(Integer.toString(id), "id", context.getPackageName());
-        Log.i(TAG, Integer.toString(checkExistence));
+    public boolean isExistingTag(String tagName){
+        int checkExistence = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
 
         if(checkExistence != 0){
-            // id is taken
+            Log.i(TAG, tagName+" is already in the list");
+            // tag name already exist
             return true;
         }else{
-            // id is available
+            // tag name not exist
             return false;
         }
     }
 
 
-    public ImageButton addTagToInterest(Context context, String tagName){
-        // Button and TextView naming                               //
-        // starting from 1 as 000 for button id cannot be assigned  //
-        // button id = 1,2,3,4,5 ... same as countTagsInterested  //
-        // textView id = 111,222,333 ... ,101010,111111               //
+    public int addTagToInterest(Context context, String tagName){
+        // 000 for button id cannot be assigned                 //
+        // button id = (ex)222222                               //
+        // textView id = (ex)333333    , button id +111111      //
         // to avoid possible conflict in indexing between them when looking for resource
 
-        this.countTagsInList++;
+        // checking first if user has added this tag before
+        // if tag is already added, return 0 or return tag id
+        ArrayList<String> tempArrayList;
+        int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
+        int txtId = btnId + TEXTVIEW_IDENTIFIER;
 
-        //int btnId = getAvailableId(context);
-        if(this.countTagsInList == 1) {
-            int checkExistence = context.getResources().getIdentifier(Integer.toString(1), "id", context.getPackageName());
-            Log.i(TAG, "checkExisnstance before=  "+Integer.toString(checkExistence));
+        if(mLocalDB.numberOfRows() != 0) {
+            // do not query for exist tag name when it's very first time
+            tempArrayList = mLocalDB.getData(btnId);
+
+            if (tempArrayList.isEmpty()) {
+                // not first time execution
+                addTagToView(context, tagName, btnId, txtId);
+
+                // store in local db
+                if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
+                    // store the tag in local database
+                    countTagsInList++;
+                    Log.i(TAG, "tag stored in local db");
+                    Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
+                }
+                return btnId;
+
+            } else {
+
+                // tag name already registered
+                Log.i(TAG, "tag name conflict in local database");
+                return 0;
+
+            }
+        }else{
+            // first execution of the app
+            addTagToView(context, tagName, btnId, txtId);
+
+            // store in local db
+            if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
+                // store the tag in local database
+                countTagsInList++;
+                Log.i(TAG, "tag stored in local db");
+                Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
+            }
+            return btnId;
         }
-        if(this.countTagsInList == 2) {
 
+    }
 
-            int checkExistence = context.getResources().getIdentifier(Integer.toString(1), "id", context.getPackageName());
-            Log.i(TAG, "checkExisnstance after=  "+Integer.toString(checkExistence));
-        }
-        int btnId = this.countTagsInList;
-        String temp = Integer.toString(btnId)+Integer.toString(btnId)+Integer.toString(btnId);
-        int txtId = Integer.valueOf(temp);
+    private void addTagToView(Context context, String tagName, int btnId, int txtId){
+        Log.i(TAG, "btn id: " + btnId);
+        Log.i(TAG, "txt id: " + txtId);
 
-        LinearLayout outerLayout = (LinearLayout)this.activity.findViewById(R.id.ButtonsLayout);
+        LinearLayout outerLayout = (LinearLayout) this.activity.findViewById(R.id.ButtonsLayout);
         TextView mTextView = new TextView(context);
         RelativeLayout innerLayout = new RelativeLayout(context);
         ImageButton mImageBtn = new ImageButton(context);
@@ -154,18 +180,12 @@ public class Tags {
         mTextView.setTextSize(25);
         mTextView.setText(tagName);
 
-
-        Log.i(TAG, Integer.toString(this.countTagsInList));
-        Log.i(TAG, "id: "+Integer.toString(btnId));
         RelativeLayout.LayoutParams innerLayoutParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         innerLayout.setLayoutParams(innerLayoutParam);
 
         innerLayout.addView(mTextView);
         innerLayout.addView(mImageBtn);
         outerLayout.addView(innerLayout);
-
-
-        return mImageBtn;
     }
 
 }

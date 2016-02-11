@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <item name="science" type="id"/>
+    <item name="party" type="id"/>
+    <item name="education" type="id"/>
+    <item name="job" type="id"/>
+    <item name="course" type="id"/>
+    <item name="music" type="id"/>
+
+</resources>
+

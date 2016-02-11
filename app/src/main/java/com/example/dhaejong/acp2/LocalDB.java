@@ -26,7 +26,7 @@ public class LocalDB extends SQLiteOpenHelper{
     private static final String COLUMN_NAME_TAG_NAME = "name";
     private static final String COLUMN_NAME_ID = "id";
 
-    private static final String DATABASE_CREATE_PLAYER = "create if not exists table Tags " +
+    private static final String DATABASE_CREATE_PLAYER = "create table if not exists Tags " +
             "("+COLUMN_NAME_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
 
     private Context m_context;
@@ -34,7 +34,7 @@ public class LocalDB extends SQLiteOpenHelper{
 
     LocalDB(Context context){
         super(context, DATABASE_TABLE_NAME, null, DATABASE_VERSION);
-        this.m_context = context;
+        m_context = context;
     }
 
     @Override
@@ -45,31 +45,44 @@ public class LocalDB extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_NAME );
+        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_NAME);
         onCreate(db);
     }
 
 
     public boolean insertTag(String id, String name) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("name", name);
-        contentValues.put("id", id);
-        db.insert("Tags", null, contentValues);
-        return true;
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("name", name);
+            contentValues.put("id", id);
+            db.insert("Tags", null, contentValues);
+            Log.i(TAG, "tag is stored");
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.i(TAG, "something went wrong with inserting data");
+            return false;
+        }
     }
 
     public ArrayList<String> getData(int id){
         ArrayList<String> array_list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res = db.rawQuery("select * from Tags where id =" + id + "", null);
-        res.moveToFirst();
-        int count = res.getColumnCount();
-
-        while(count > 0){
-            array_list.add(res.getString(--count));
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res = db.rawQuery("select * from " + DATABASE_TABLE_NAME + " where id =" + id + "", null);
+            res.moveToFirst();
+            int count = res.getColumnCount();
+            Log.i(TAG, count+" let's see");
+            while (count > 0) {
+                array_list.add(res.getString(--count));
+                Log.i(TAG, count + " value of count");
+            }
+            res.close();
+            db.close();
+        }catch(Exception e){
+            Log.i(TAG, "not exist info what you are looking for");
         }
-        res.close();
         return array_list;
 
     }
@@ -82,7 +95,7 @@ public class LocalDB extends SQLiteOpenHelper{
 
     public Integer deleteTag (Integer id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete("name",
+        return db.delete(DATABASE_TABLE_NAME,
                 "id = ? ",
                 new String[] {
                         Integer.toString(id)
@@ -94,9 +107,8 @@ public class LocalDB extends SQLiteOpenHelper{
     public ArrayList<String> getAllTagNames(){
         ArrayList<String> array_list = new ArrayList<String>();
 
-        //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from Tags", null );
+        Cursor res =  db.rawQuery( "select * from "+DATABASE_TABLE_NAME+"", null );
         res.moveToFirst();
 
 
@@ -108,9 +120,9 @@ public class LocalDB extends SQLiteOpenHelper{
         return array_list;
     }
 
-    public boolean deleteDB(String name) {
+    public boolean deleteTable(String tableName) {
         try {
-            m_context.deleteDatabase(name);
+            m_context.deleteDatabase(tableName);
             return true;
         }catch(Exception e){
             Log.i(TAG, "Something went wrong with deleting");

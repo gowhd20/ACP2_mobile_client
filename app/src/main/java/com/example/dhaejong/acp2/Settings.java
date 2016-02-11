@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +20,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.quinny898.library.persistentsearch.SearchResult;
+
+import java.util.ArrayList;
 
 
 public class Settings extends ActionBarActivity implements View.OnClickListener{
@@ -37,8 +40,9 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         setContentView(R.layout.activity_settings);
         Main2Activity.isSettingsActivityActive = true;
         floatingBtn();
-
+        Log.i(TAG, "how often do you init Settings.java");
         mTags = new Tags(Settings.this, this);
+
     }
 
     @Override
@@ -85,15 +89,21 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     @Override
     public void onClick(View view){
         int selectedResId = view.getId();
-
+        Log.i(TAG, Integer.toString(view.getId()));
         int checkExistence = this.getResources().getIdentifier(Integer.toString(selectedResId), "id", this.getPackageName());
 
         // resource exists
         if(checkExistence != 0){
             try {
+                // delete item from view
                 TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
-                Log.i(TAG, "also textview " + mTxtView.getId() + " is clicked");
-                callDialog(mTxtView.getText().toString(), selectedResId, getTextViewIdByBtnId(selectedResId));
+                Log.i(TAG, "Resource exist and also textview " + mTxtView.getId() + " is clicked to delete");
+                callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
+
+                // delete item from local db
+                mTags.mLocalDB.deleteTag(selectedResId);
+                Log.i(TAG, "selected item has deleted from local db");
+
             }catch(Exception e){
                 Log.i(TAG, "something went wrong with getting resource");
             }
@@ -107,9 +117,16 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         switch(requestCode) {
             case GET_TAG_NAME:
                 if (resultCode == RESULT_OK) {
-                    ImageButton newButton;
-                    newButton = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
-                    newButton.setOnClickListener(this);
+                    try {
+                        int newButtonId = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
+                        //ImageButton newButton = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
+                        Log.i(TAG, "tag id: " + Integer.toString(newButtonId));
+                        ImageButton newButton = (ImageButton) findViewById(newButtonId);
+                        newButton.setOnClickListener(this);
+                    }catch(Exception e){
+                        Log.i(TAG, "can't find resource for the tag");
+                    }
+
                 }
                 break;
         }
@@ -134,7 +151,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
             @Override
             public void onClick(View v) {
-                removeTags(buttonId, textViewId);
+                removeTagsFromView(buttonId, textViewId);
                 dialog.dismiss();
             }
         });
@@ -159,10 +176,10 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     }
 
     protected int getTextViewIdByBtnId(int btnId){
-        return Integer.valueOf(Integer.toString(btnId)+Integer.toString(btnId)+Integer.toString(btnId));
+        return btnId + Tags.TEXTVIEWIDENTIFIER;
     }
 
-    protected boolean removeTags(int btnId, int textViewId){
+    protected boolean removeTagsFromView(int btnId, int textViewId){
         try {
             ImageButton mBtn = (ImageButton) findViewById(btnId);
             TextView mTxtView = (TextView) findViewById(textViewId);
