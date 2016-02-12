@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,7 +22,8 @@ import android.widget.Toast;
 
 import com.quinny898.library.persistentsearch.SearchResult;
 
-import java.util.ArrayList;
+import java.util.*;
+import java.util.Calendar;
 
 
 public class Settings extends ActionBarActivity implements View.OnClickListener{
@@ -32,15 +34,27 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     private Tags mTags;
     private static final int GET_TAG_NAME = 0;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         Main2Activity.isSettingsActivityActive = true;
-        floatingBtn();
-        Log.i(TAG, "how often do you init Settings.java");
+        floatingBtn();  // call the adding tag button
+
+        final CheckBox mCheckbox=(CheckBox)findViewById(R.id.checkBoxForCalendar);    // create checkbox
+        mCheckbox.setChecked(getFromSP("checkbox"));                            // set checkbox by saved state
+        mCheckbox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox) v).isChecked()) {
+                    callDialog();
+                } else {
+                    saveInSp("checkbox", false);
+                    Log.i(TAG, "User remove connection with calendar");
+                }
+
+            }
+        });
         mTags = new Tags(Settings.this, this);
 
     }
@@ -159,6 +173,59 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         dialog.show();
     }
 
+    protected void callDialog(){
+
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.item_selected_popup_window);
+        dialog.setTitle("Calendar data");
+
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.text);
+        text.setText("Would you like to connect your schedule in the Calendar?");
+        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+        image.setImageResource(R.drawable.ic_image_black_24dp);
+
+        Button dialogButtonOk = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        Button dialogButtonNo = (Button) dialog.findViewById(R.id.dialogButtonNo);
+
+        dialogButtonOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // call connecting calender methods
+                Intent intent = new Intent(context, Calendar.class);
+                startService(intent);
+                Log.i(TAG, "am i?");
+                // save checkbox state
+                saveInSp("checkbox", true);
+
+                dialog.dismiss();
+
+            }
+        });
+
+        dialogButtonNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // no selected
+                int checkboxId = context.getResources().getIdentifier("checkBoxForCalendar", "id", context.getPackageName());
+                if(checkboxId != 0){
+                    CheckBox mCheckbox = (CheckBox)findViewById(checkboxId);
+                    mCheckbox.setChecked(false);
+                }else{
+                    Log.i(TAG, "checkbox doesn't exist");
+                }
+
+                dialog.dismiss();
+
+            }
+        });
+
+        dialog.show();
+    }
+
     // tag add button clicked
     protected void floatingBtn(){
         android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
@@ -176,7 +243,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     }
 
     protected int getTextViewIdByBtnId(int btnId){
-        return btnId + Tags.TEXTVIEWIDENTIFIER;
+        return btnId + Tags.TEXTVIEW_IDENTIFIER;
     }
 
     protected boolean removeTagsFromView(int btnId, int textViewId){
@@ -193,6 +260,17 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             Log.i(TAG, "removing item failed");
             return false;
         }
+    }
+
+    private boolean getFromSP(String key){
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Calendar", android.content.Context.MODE_PRIVATE);
+        return preferences.getBoolean(key, false);
+    }
+    private void saveInSp(String key, boolean value){
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Calendar", android.content.Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(key, value);
+        editor.commit();
     }
 
 
