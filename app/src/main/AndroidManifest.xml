@@ -18,8 +18,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <service android:name=".Calendar"
-            android:enabled="true"></service>
+        <service android:name=".CalendarService"
+            android:enabled="true"/>
 
         <activity
             android:name=".MainActivity"
@@ -43,13 +43,28 @@
             android:label="@string/title_activity_search_tags" >
         </activity>
 
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <receiver android:name=".BroadcastListener"
             android:enabled="true"
             android:exported="true" >
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name="com.facebook.FacebookContentProvider"
+            android:authorities="com.facebook.app.FacebookContentProvider928408073903575"
+            android:exported="true" />
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
 
     </application>
 

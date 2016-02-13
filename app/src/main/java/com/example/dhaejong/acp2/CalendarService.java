@@ -19,9 +19,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 /**
- * Created by dhaejong on 12.2.2016.
+ * Created by dhaejong on 13.2.2016.
  */
-public class Calendar extends Service {
+public class CalendarService extends Service {
 
     private static final String TAG = "Calendar";
 
@@ -42,19 +42,24 @@ public class Calendar extends Service {
     private PendingIntent pendingIntent;
     private BroadcastReceiver myBroadcastReceiver;
     private IntentFilter intentFilter;
-    private final String USER_ACTION = "android.intent.action.USER_ACTION";
+    private final String CALENDAR_ACTION = "android.intent.action.CALENDAR_ACTION";
     private Context context = this;
 
     @Override
     public void onCreate() {
 
-        intentFilter = new IntentFilter(USER_ACTION);
+        intentFilter = new IntentFilter(CALENDAR_ACTION);
         myBroadcastReceiver = new MyBroadcastReceiver();
 
-        Log.i(TAG, "sending/checking calendar data of users");
         registerReceiver(myBroadcastReceiver, intentFilter);
         alarmStart(this);
 
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        unregisterReceiver(myBroadcastReceiver);
     }
 
 
@@ -62,7 +67,6 @@ public class Calendar extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         //TODO do something useful
 
-        Log.i(TAG, "sending/checking calendar data of users2");
         return Service.START_NOT_STICKY;
     }
 
@@ -76,7 +80,7 @@ public class Calendar extends Service {
 
     public void alarmStart(Context context) {
 
-        Intent alarmIntent = new Intent(USER_ACTION);
+        Intent alarmIntent = new Intent(CALENDAR_ACTION);
         pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         int interval = 10000; // alarm checking time interval 10 sec
@@ -96,7 +100,7 @@ public class Calendar extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(USER_ACTION)) {
+            if (intent.getAction().equals(CALENDAR_ACTION)) {
 
                 PowerManager pm = (PowerManager) context.getSystemService(context.POWER_SERVICE);
                 PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "");

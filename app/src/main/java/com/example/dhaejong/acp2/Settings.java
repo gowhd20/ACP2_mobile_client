@@ -3,8 +3,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.media.Image;
+
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBarActivity;
@@ -15,15 +14,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.quinny898.library.persistentsearch.SearchResult;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 
-import java.util.*;
-import java.util.Calendar;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class Settings extends ActionBarActivity implements View.OnClickListener{
@@ -33,28 +39,83 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     private Context context = this;
     private Tags mTags;
     private static final int GET_TAG_NAME = 0;
+    SharedPref mSharedPreference;
+    private AccessToken access_token;
+    CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(this.getApplicationContext());    // this should come before setContentView
         setContentView(R.layout.activity_settings);
         Main2Activity.isSettingsActivityActive = true;
+        mSharedPreference = new SharedPref(this);   // sharedpreference class
         floatingBtn();  // call the adding tag button
 
         final CheckBox mCheckbox=(CheckBox)findViewById(R.id.checkBoxForCalendar);    // create checkbox
-        mCheckbox.setChecked(getFromSP("checkbox"));                            // set checkbox by saved state
+        mCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+                // TODO Auto-generated method stub
+                Toast.makeText(getApplicationContext(), "Check box " + arg0.getText().toString() + " is " + String.valueOf(arg1), Toast.LENGTH_LONG).show();
+
+                switch (String.valueOf(arg1)) {
+                    case "false":
+                        break;
+                    case "true":
+                        // check box clicked, connect calendar
+
+                        break;
+                }
+
+            }
+        });
+        mCheckbox.setChecked(mSharedPreference.getFromSP("checkbox"));                            // set checkbox by saved state
         mCheckbox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (((CheckBox) v).isChecked()) {
                     callDialog();
                 } else {
-                    saveInSp("checkbox", false);
+                    mSharedPreference.saveInSp("checkbox", false);
+                    Intent intent = new Intent(context, CalendarService.class);
+                    context.stopService(intent);
                     Log.i(TAG, "User remove connection with calendar");
                 }
 
             }
         });
+
+        // facebook login
+        callbackManager = CallbackManager.Factory.create();
+        LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
+        List<String> permissionNeeds = Arrays.asList("user_photos", "email", "user_birthday", "public_profile", "user_friends", "user_posts");
+        loginButton.setReadPermissions(permissionNeeds);
+
+
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+
+                access_token = loginResult.getAccessToken();
+
+                Log.i(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
+
+            }
+
+            @Override
+            public void onCancel() {
+                //"If login attempt canceled.";
+            }
+
+            @Override
+            public void onError(FacebookException e) {
+                //"If login attempt Failed.";
+            }
+        });
+
+
         mTags = new Tags(Settings.this, this);
 
     }
@@ -127,6 +188,8 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
 
         switch(requestCode) {
             case GET_TAG_NAME:
@@ -194,11 +257,11 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             public void onClick(View v) {
 
                 // call connecting calender methods
-                Intent intent = new Intent(context, Calendar.class);
-                startService(intent);
+                Intent intent = new Intent(context, CalendarService.class);
+                context.startService(intent);
                 Log.i(TAG, "am i?");
                 // save checkbox state
-                saveInSp("checkbox", true);
+                mSharedPreference.saveInSp("checkbox", true);
 
                 dialog.dismiss();
 
@@ -262,16 +325,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         }
     }
 
-    private boolean getFromSP(String key){
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Calendar", android.content.Context.MODE_PRIVATE);
-        return preferences.getBoolean(key, false);
-    }
-    private void saveInSp(String key, boolean value){
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Calendar", android.content.Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(key, value);
-        editor.commit();
-    }
 
 
 }
