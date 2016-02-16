@@ -1,28 +1,16 @@
 package com.example.dhaejong.acp2;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.ActionBar;
+
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import com.quinny898.library.persistentsearch.SearchBox;
-import com.quinny898.library.persistentsearch.SearchResult;
-
-import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -45,7 +33,11 @@ public class MainActivity extends ActionBarActivity {
 
             }
         });
+
         Tags mTags = new Tags(MainActivity.this, this);
+        EnableGcm mGcm = new EnableGcm(context, MainActivity.this);
+        mGcm.initGcm();                                                      // set all services of gcm
+
 
         if(mTags.countTagsInList != 0 ){
             // not first time use
