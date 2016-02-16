@@ -28,6 +28,7 @@ import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +43,143 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     SharedPref mSharedPreference;
     private AccessToken access_token;
     CallbackManager callbackManager;
+
+
+
+
+
+    private void callDialog(String tagName, final int buttonId, final int textViewId){
+
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.item_selected_popup_window);
+        dialog.setTitle("Removing " + tagName + " tag");
+
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.text);
+        text.setText("Would you like to remove '" + tagName + "' Tag from your tag list?");
+        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+        image.setImageResource(R.drawable.ic_image_black_24dp);
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        dialogButton.setTag(tagName);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                removeTagsFromView(buttonId, textViewId);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void callDialog(){
+
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.item_selected_popup_window);
+        dialog.setTitle("Calendar data");
+
+        // set the custom dialog components - text, image and button
+        TextView text = (TextView) dialog.findViewById(R.id.text);
+        text.setText("Would you like to connect your schedule in the Calendar?");
+        ImageView image = (ImageView) dialog.findViewById(R.id.image);
+        image.setImageResource(R.drawable.ic_image_black_24dp);
+
+        Button dialogButtonOk = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        Button dialogButtonNo = (Button) dialog.findViewById(R.id.dialogButtonNo);
+
+        dialogButtonOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // call connecting calender methods
+                Intent intent = new Intent(context, CalendarService.class);
+                context.startService(intent);
+                // save checkbox state
+                mSharedPreference.saveInSp("checkbox", true);
+
+                dialog.dismiss();
+
+            }
+        });
+
+        dialogButtonNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // no selected
+                int checkboxId = context.getResources().getIdentifier("checkBoxForCalendar", "id", context.getPackageName());
+                if(checkboxId != 0){
+                    CheckBox mCheckbox = (CheckBox)findViewById(checkboxId);
+                    mCheckbox.setChecked(false);
+                }else{
+                    Log.i(TAG, "checkbox doesn't exist");
+                }
+
+                dialog.dismiss();
+
+            }
+        });
+
+        dialog.show();
+    }
+
+    // tag add button clicked
+    private void floatingBtn(){
+        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+                Intent intent = new Intent(context, SearchTags.class);
+                startActivityForResult(intent, GET_TAG_NAME);
+
+                Log.i(TAG, "action button clicked");
+            }
+        });
+    }
+
+
+    private int getTextViewIdByBtnId(int btnId){
+        return btnId + Tags.TEXTVIEW_IDENTIFIER;
+    }
+
+    private void initSettingsActivity(){
+        ArrayList<String> tagList;
+        tagList = mTags.mLocalDB.getAllTagNames();  // get all tag names from local db
+        if(!tagList.isEmpty()) {
+            for (int i = 0; i < tagList.size(); i++) {
+                int initBtnId = mTags.initAddTagToInterest(this, tagList.get(i));
+                Log.i(TAG, "tag id: " + Integer.toString(initBtnId));
+                ImageButton newButton = (ImageButton) findViewById(initBtnId);
+                newButton.setOnClickListener(this);
+            }
+        }else{
+            Log.i(TAG, "Local db is empty");
+        }
+
+    }
+
+    private boolean removeTagsFromView(int btnId, int textViewId){
+        try {
+            ImageButton mBtn = (ImageButton) findViewById(btnId);
+            TextView mTxtView = (TextView) findViewById(textViewId);
+            ViewGroup layout = (ViewGroup) mBtn.getParent();
+            layout.removeView(mBtn);
+            layout.removeView(mTxtView);
+            // reduce the count of tags in the list
+            mTags.countTagsInList--;
+            return true;
+        }catch(Exception e){
+            Log.i(TAG, "removing item failed");
+            return false;
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +209,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
             }
         });
+
         mCheckbox.setChecked(mSharedPreference.getFromSP("checkbox"));                            // set checkbox by saved state
         mCheckbox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,6 +256,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
 
         mTags = new Tags(Settings.this, this);
+        initSettingsActivity();         // init tag names of previously added
 
     }
 
@@ -196,7 +336,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 if (resultCode == RESULT_OK) {
                     try {
                         int newButtonId = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
-                        //ImageButton newButton = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
                         Log.i(TAG, "tag id: " + Integer.toString(newButtonId));
                         ImageButton newButton = (ImageButton) findViewById(newButtonId);
                         newButton.setOnClickListener(this);
@@ -206,122 +345,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
                 }
                 break;
-        }
-    }
-
-    protected void callDialog(String tagName, final int buttonId, final int textViewId){
-
-        // custom dialog
-        final Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.item_selected_popup_window);
-        dialog.setTitle("Removing " + tagName + " tag");
-
-        // set the custom dialog components - text, image and button
-        TextView text = (TextView) dialog.findViewById(R.id.text);
-        text.setText("Would you like to remove '" + tagName + "' Tag from your tag list?");
-        ImageView image = (ImageView) dialog.findViewById(R.id.image);
-        image.setImageResource(R.drawable.ic_image_black_24dp);
-
-        Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-        dialogButton.setTag(tagName);
-        dialogButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                removeTagsFromView(buttonId, textViewId);
-                dialog.dismiss();
-            }
-        });
-
-        dialog.show();
-    }
-
-    protected void callDialog(){
-
-        // custom dialog
-        final Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.item_selected_popup_window);
-        dialog.setTitle("Calendar data");
-
-        // set the custom dialog components - text, image and button
-        TextView text = (TextView) dialog.findViewById(R.id.text);
-        text.setText("Would you like to connect your schedule in the Calendar?");
-        ImageView image = (ImageView) dialog.findViewById(R.id.image);
-        image.setImageResource(R.drawable.ic_image_black_24dp);
-
-        Button dialogButtonOk = (Button) dialog.findViewById(R.id.dialogButtonOK);
-        Button dialogButtonNo = (Button) dialog.findViewById(R.id.dialogButtonNo);
-
-        dialogButtonOk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // call connecting calender methods
-                Intent intent = new Intent(context, CalendarService.class);
-                context.startService(intent);
-                Log.i(TAG, "am i?");
-                // save checkbox state
-                mSharedPreference.saveInSp("checkbox", true);
-
-                dialog.dismiss();
-
-            }
-        });
-
-        dialogButtonNo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // no selected
-                int checkboxId = context.getResources().getIdentifier("checkBoxForCalendar", "id", context.getPackageName());
-                if(checkboxId != 0){
-                    CheckBox mCheckbox = (CheckBox)findViewById(checkboxId);
-                    mCheckbox.setChecked(false);
-                }else{
-                    Log.i(TAG, "checkbox doesn't exist");
-                }
-
-                dialog.dismiss();
-
-            }
-        });
-
-        dialog.show();
-    }
-
-    // tag add button clicked
-    protected void floatingBtn(){
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                Intent intent = new Intent(context, SearchTags.class);
-                startActivityForResult(intent, GET_TAG_NAME);
-
-                Log.i(TAG, "action button clicked");
-            }
-        });
-    }
-
-    protected int getTextViewIdByBtnId(int btnId){
-        return btnId + Tags.TEXTVIEW_IDENTIFIER;
-    }
-
-    protected boolean removeTagsFromView(int btnId, int textViewId){
-        try {
-            ImageButton mBtn = (ImageButton) findViewById(btnId);
-            TextView mTxtView = (TextView) findViewById(textViewId);
-            ViewGroup layout = (ViewGroup) mBtn.getParent();
-            layout.removeView(mBtn);
-            layout.removeView(mTxtView);
-            // reduce the count of tags in the list
-            mTags.countTagsInList--;
-            return true;
-        }catch(Exception e){
-            Log.i(TAG, "removing item failed");
-            return false;
         }
     }
 

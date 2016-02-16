@@ -1,13 +1,19 @@
 package com.example.dhaejong.acp2;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mongodb.MongoClient;
@@ -21,19 +27,33 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    private int isFirstTime = 0;
     private String TAG = "MainActivity";
+    Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(isFirstTime == 1){
+        View mainView = findViewById(R.id.mainActivity);
+        mainView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Toast.makeText(getApplicationContext(), "screen Clicked",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(context, Settings.class);
+                startActivity(intent);
 
+            }
+        });
+        Tags mTags = new Tags(MainActivity.this, this);
+
+        if(mTags.countTagsInList != 0 ){
+            // not first time use
             Intent intent = new Intent(this, Main2Activity.class);
             startActivity(intent);
         }
+
+
     }
 
     @Override
@@ -60,6 +80,11 @@ public class MainActivity extends ActionBarActivity {
                     Toast.makeText(MainActivity.this," Settings.java is already running", Toast.LENGTH_LONG).show();
                     return false;
                 }
+            case R.id.title_activity_main2:
+                Intent intent = new Intent(this, Main2Activity.class);
+                startActivity(intent);
+                return true;
+
 
             default:
                 // If we got here, the user's action was not recognized.
@@ -68,5 +93,7 @@ public class MainActivity extends ActionBarActivity {
 
         }
     }
+
+
 
 }

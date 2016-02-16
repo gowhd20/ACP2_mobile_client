@@ -17,6 +17,7 @@ import android.widget.TextView;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by dhaejong on 2.2.2016.
@@ -37,9 +38,9 @@ public class Tags {
     Tags(Context context, Activity activity){
         this.context = context;
         this.activity = activity;
-        this.countTagsInList = 0;
         this.mLocalDB = new LocalDB(context);
-        mLocalDB.deleteTable("Tags");           // for test purpose *******************************//
+        this.countTagsInList = mLocalDB.numberOfRows();
+        //mLocalDB.deleteTable("Tags");           // for test purpose *******************************//
 
         this.tags = new String[]{"science", "party", "education", "job", "course", "music"};
         this.tempAddedTags = new String[]{};
@@ -54,17 +55,6 @@ public class Tags {
         return this.tag_names;
     }
 
-/*    public boolean isExistingTag(String tagName){
-        TextView tempView;// = (TextView) this.activity.findViewById(textViewId)
-        int count = this.countTagsInList;
-        namingIndex
-        while(count > 0){
-            tempView = (TextView) this.activity.findViewById(textViewId)
-
-            --count;
-        }
-
-    }*/
 
     public ArrayList<String> getTagList(){
         return this.tag_names;
@@ -101,6 +91,20 @@ public class Tags {
         }
     }
 
+    private boolean addTagToLocalDB(int btnId, String tagName){
+        // store in local db
+        if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
+            // store the tag in local database
+            countTagsInList = mLocalDB.numberOfRows();
+            Log.i(TAG, "tag stored in local db");
+            Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
+            return true;
+        }else{
+            Log.i(TAG, "failed to store tag name into local db");
+        }
+        return false;
+    }
+
 
     public int addTagToInterest(Context context, String tagName){
         // 000 for button id cannot be assigned                 //
@@ -110,6 +114,7 @@ public class Tags {
 
         // checking first if user has added this tag before
         // if tag is already added, return 0 or return tag id
+
         ArrayList<String> tempArrayList;
         int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
         int txtId = btnId + TEXTVIEW_IDENTIFIER;
@@ -118,23 +123,19 @@ public class Tags {
             // do not query for exist tag name when it's very first time
             tempArrayList = mLocalDB.getData(btnId);
 
+
             if (tempArrayList.isEmpty()) {
                 // not first time execution
                 addTagToView(context, tagName, btnId, txtId);
 
                 // store in local db
-                if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
-                    // store the tag in local database
-                    countTagsInList++;
-                    Log.i(TAG, "tag stored in local db");
-                    Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
-                }
+                addTagToLocalDB(btnId, tagName);
                 return btnId;
 
             } else {
 
                 // tag name already registered
-                Log.i(TAG, "tag name conflict in local database");
+                Log.i(TAG, "tag name conflicted in local database");
                 return 0;
 
             }
@@ -143,12 +144,7 @@ public class Tags {
             addTagToView(context, tagName, btnId, txtId);
 
             // store in local db
-            if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
-                // store the tag in local database
-                countTagsInList++;
-                Log.i(TAG, "tag stored in local db");
-                Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
-            }
+            addTagToLocalDB(btnId, tagName);
             return btnId;
         }
 
@@ -186,6 +182,15 @@ public class Tags {
         innerLayout.addView(mTextView);
         innerLayout.addView(mImageBtn);
         outerLayout.addView(innerLayout);
+    }
+
+    public int initAddTagToInterest(Context context, String tagName){
+        int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
+        int txtId = btnId + TEXTVIEW_IDENTIFIER;
+
+        addTagToView(context, tagName, btnId, txtId);
+
+        return btnId;
     }
 
 }

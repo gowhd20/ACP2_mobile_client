@@ -73,7 +73,7 @@ public class LocalDB extends SQLiteOpenHelper{
             Cursor res = db.rawQuery("select * from " + DATABASE_TABLE_NAME + " where id =" + id + "", null);
             res.moveToFirst();
             int count = res.getColumnCount();
-            Log.i(TAG, count+" let's see");
+            Log.i(TAG, count+" count of tags in local db");
             while (count > 0) {
                 array_list.add(res.getString(--count));
                 Log.i(TAG, count + " value of count");
