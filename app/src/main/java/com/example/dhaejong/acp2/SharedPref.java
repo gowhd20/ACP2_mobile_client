@@ -25,4 +25,16 @@ public class SharedPref {
         editor.commit();
     }
 
+    public String getStringFromSP(String key){
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("Email", android.content.Context.MODE_PRIVATE);
+        return preferences.getString(key, "");
+    }
+
+    public void saveInSp(String key, String value){
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("Email", android.content.Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
 }

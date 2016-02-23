@@ -25,6 +25,8 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphRequestBatch;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
@@ -37,12 +39,14 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
     private String TAG = "Settings";
     //public static List<Tags> tagsList;
-    private Context context = this;
     private Tags mTags;
     private static final int GET_TAG_NAME = 0;
-    SharedPref mSharedPreference;
     private AccessToken access_token;
+
+    Context context = this;
+    SharedPref mSharedPreference;
     CallbackManager callbackManager;
+    FacebookMethods mFacebookMethods;
 
     private void callDialog(String tagName, final int buttonId, final int textViewId){
 
@@ -139,7 +143,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         });
     }
 
-
     private int getTextViewIdByBtnId(int btnId){
         return btnId + Tags.TEXTVIEW_IDENTIFIER;
     }
@@ -176,7 +179,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         }
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -184,6 +186,10 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         setContentView(R.layout.activity_settings);
         Main2Activity.isSettingsActivityActive = true;
         mSharedPreference = new SharedPref(this);   // sharedpreference class
+        mFacebookMethods = new FacebookMethods(this);
+        mFacebookMethods.queryFbData();             // query facebook data that will be stored in shared preference
+
+
         floatingBtn();  // call the adding tag button
 
         final CheckBox mCheckbox=(CheckBox)findViewById(R.id.checkBoxForCalendar);    // create checkbox
@@ -225,17 +231,16 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         // facebook login
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
-        List<String> permissionNeeds = Arrays.asList("user_photos", "email", "user_birthday", "public_profile", "user_friends", "user_posts");
+        List<String> permissionNeeds = Arrays.asList("basic_info", "user_photos", "email", "user_birthday", "public_profile", "user_friends", "user_posts");
         loginButton.setReadPermissions(permissionNeeds);
 
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-
                 access_token = loginResult.getAccessToken();
 
-                Log.i(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
+                Log.d(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
 
             }
 
@@ -249,7 +254,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 //"If login attempt Failed.";
             }
         });
-
 
         mTags = new Tags(Settings.this, this);
         initSettingsActivity();         // init tag names of previously added

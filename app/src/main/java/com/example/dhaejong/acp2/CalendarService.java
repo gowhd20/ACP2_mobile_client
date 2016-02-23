@@ -171,7 +171,7 @@ public class CalendarService extends Service {
                     }
 
                     // when the event is over
-                } else if (!onEvent(this.beginTimeOfTheEvent, this.endTimeOfTheEvent) && this.isEventOn == true) {
+                } else if (!onEvent(this.beginTimeOfTheEvent, this.endTimeOfTheEvent) && this.isEventOn) {
 
                     this.isEventOn = false;
                     Log.i(TAG, " event ended");
