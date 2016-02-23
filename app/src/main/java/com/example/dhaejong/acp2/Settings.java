@@ -44,10 +44,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     private AccessToken access_token;
     CallbackManager callbackManager;
 
-
-
-
-
     private void callDialog(String tagName, final int buttonId, final int textViewId){
 
         // custom dialog
@@ -159,7 +155,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 newButton.setOnClickListener(this);
             }
         }else{
-            Log.i(TAG, "Local db is empty");
+            Log.e(TAG, "Local db is empty");
         }
 
     }

@@ -39,8 +39,9 @@ public class Tags {
         this.context = context;
         this.activity = activity;
         this.mLocalDB = new LocalDB(context);
-        this.countTagsInList = mLocalDB.numberOfRows();
-        //mLocalDB.deleteTable("Tags");           // for test purpose *******************************//
+        this.countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
+        //mLocalDB.emptyTables();           // for test purpose *******************************//
+
 
         this.tags = new String[]{"science", "party", "education", "job", "course", "music"};
         this.tempAddedTags = new String[]{};
@@ -93,9 +94,9 @@ public class Tags {
 
     private boolean addTagToLocalDB(int btnId, String tagName){
         // store in local db
-        if (mLocalDB.insertTag(Integer.toString(btnId), tagName)) {
+        if (mLocalDB.addNewTag(Integer.toString(btnId), tagName)) {
             // store the tag in local database
-            countTagsInList = mLocalDB.numberOfRows();
+            countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
             Log.i(TAG, "tag stored in local db");
             Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
             return true;
@@ -119,9 +120,9 @@ public class Tags {
         int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
         int txtId = btnId + TEXTVIEW_IDENTIFIER;
 
-        if(mLocalDB.numberOfRows() != 0) {
+        if(mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS) != 0) {
             // do not query for exist tag name when it's very first time
-            tempArrayList = mLocalDB.getData(btnId);
+            tempArrayList = mLocalDB.getAllItemsById(btnId, LocalDB.DATABASE_TABLE_NAME_TAGS);
 
 
             if (tempArrayList.isEmpty()) {
@@ -154,7 +155,7 @@ public class Tags {
         Log.i(TAG, "btn id: " + btnId);
         Log.i(TAG, "txt id: " + txtId);
 
-        LinearLayout outerLayout = (LinearLayout) this.activity.findViewById(R.id.ButtonsLayout);
+        LinearLayout outerLayout = (LinearLayout) activity.findViewById(R.id.ButtonsLayout);
         TextView mTextView = new TextView(context);
         RelativeLayout innerLayout = new RelativeLayout(context);
         ImageButton mImageBtn = new ImageButton(context);

@@ -12,6 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 
 public class MainActivity extends ActionBarActivity {
 
@@ -34,6 +37,8 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        // TODO: show a notification checking if it's right person when mobile receives events info
+
         Tags mTags = new Tags(MainActivity.this, this);
         EnableGcm mGcm = new EnableGcm(context, MainActivity.this);
         mGcm.initGcm();                                                      // set all services of gcm
@@ -44,6 +49,38 @@ public class MainActivity extends ActionBarActivity {
             Intent intent = new Intent(this, Main2Activity.class);
             startActivity(intent);
         }
+
+
+        /*
+        //mTags.mLocalDB.deleteTable("Tags");
+        ArrayList<String> list = new ArrayList<>();
+        list.add("9");
+        list.add("tivoli hot bitch party");
+        list.add("2");
+        list.add("");
+        list.add("");
+        list.add("As the weather is getting warmer, the streets are icy and the snow is falling from the roofs on your head, you know: " +
+                "Summer is almost here! To accelerate the process a bit, we are already throwing you a beach party. So bring your beach toys, " +
+                "leave your winter clothes at home and be ready to feel the heat on your bum and the sand between your toes. As always, " +
+                "with more than student friendly prices, wink wink! ");
+        list.add("Tivoli");
+        list.add("2€ in advance, 4€ from the door, free entry with ESN Card");
+        list.add("https://www.facebook.com/events/1662196667386875/");
+        list.add("2016-02-18 22:00:00");
+        list.add("");
+
+        boolean result = mTags.mLocalDB.addNewEvent(list);
+        if(result){
+            list = mTags.mLocalDB.getAllItems(9, LocalDB.DATABASE_TABLE_NAME_EVENTS);
+            Log.d(TAG, list.toString());
+
+        }else{
+            Log.e(TAG, "wrong");
+        }*/
+
+        //list = mTags.mLocalDB.getAllItems(10, LocalDB.DATABASE_TABLE_NAME_EVENTS);
+        //Log.d(TAG, list.toString());
+
 
 
     }
@@ -84,6 +121,10 @@ public class MainActivity extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
     }
 
 

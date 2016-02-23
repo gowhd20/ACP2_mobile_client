@@ -36,15 +36,17 @@ public class EnableGcm {
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "does this come to here");
                 mRegistrationProgressBar.setVisibility(ProgressBar.GONE);
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 boolean sentToken = sharedPreferences
                         .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
                     Toast.makeText(activity, R.string.gcm_send_message, Toast.LENGTH_LONG).show();
+                    Log.i(TAG, Integer.toString(R.string.gcm_send_message));
                 } else {
                     Toast.makeText(activity, R.string.token_error_message, Toast.LENGTH_LONG).show();
+                    Log.i(TAG, Integer.toString(R.string.token_error_message));
                 }
             }
         };

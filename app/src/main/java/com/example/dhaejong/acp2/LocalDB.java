@@ -9,7 +9,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by dhaejong on 5.2.2016.
@@ -20,82 +22,161 @@ public class LocalDB extends SQLiteOpenHelper{
 
     private SQLiteDatabase myDatabase;
     private static final String DATABASE_NAME = "localDb.sqlite";
-    private static final String DATABASE_TABLE_NAME = "Tags";
+    public static final String DATABASE_TABLE_NAME_TAGS = "Tags";
+    public static final String DATABASE_TABLE_NAME_EVENTS = "Events";
     private static final int DATABASE_VERSION = 4;
 
-    private static final String COLUMN_NAME_TAG_NAME = "name";
-    private static final String COLUMN_NAME_ID = "id";
+    // column names for table tags
+    public static final String COLUMN_NAME_TAG_NAME = "name";
+    public static final String COLUMN_NAME_TAG_ID = "id";
 
-    private static final String DATABASE_CREATE_PLAYER = "create table if not exists Tags " +
-            "("+COLUMN_NAME_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
+    // colume names for table events
+    public static final String COLUMN_NAME_EVENT_ID = "id";
+    public static final String COLUMN_NAME_EVENT_TITLE = "title";
+    public static final String COLUMN_NAME_EVENT_CATEGORIES_MAIN = "categories_main";
+    public static final String COLUMN_NAME_EVENT_CATEGORIES_SUB_1 = "categories_sub_1";
+    public static final String COLUMN_NAME_EVENT_CATEGORIES_SUB_2 = "categories_sub_2";
+    public static final String COLUMN_NAME_EVENT_DESCRIPTION = "description";
+    public static final String COLUMN_NAME_EVENT_ADDRESS = "address";
+    public static final String COLUMN_NAME_EVENT_PRICE = "price";
+    public static final String COLUMN_NAME_EVENT_IMAGE_URL = "url";
+    public static final String COLUMN_NAME_EVENT_START_TIME = "start_time";    // 'YYYY-MM-DD HH:MM:SS' format
+    public static final String COLUMN_NAME_EVENT_END_TIME = "end_time";        // 'YYYY-MM-DD HH:MM:SS' format
+
+
+    private static final String CREATE_TABLE_TAG_PLAYER = "create table if not exists "+DATABASE_TABLE_NAME_TAGS+" " +
+            "("+COLUMN_NAME_TAG_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
+
+    private static final String CREATE_TABLE_EVENT_PLAYER = "create table if not exists "+DATABASE_TABLE_NAME_EVENTS+" " +
+            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES_MAIN+" integer not null, " +
+            COLUMN_NAME_EVENT_CATEGORIES_SUB_1+" integer, "+COLUMN_NAME_EVENT_CATEGORIES_SUB_2+" integer, " +
+            COLUMN_NAME_EVENT_DESCRIPTION+" longtext not null, "+COLUMN_NAME_EVENT_ADDRESS+" text not null, "+COLUMN_NAME_EVENT_PRICE+" text, "+
+            COLUMN_NAME_EVENT_IMAGE_URL+ " text, "+COLUMN_NAME_EVENT_START_TIME+" datetime not null, "+COLUMN_NAME_EVENT_END_TIME+" datetime)";
 
     private Context m_context;
     public SQLiteDatabase m_db;
 
     LocalDB(Context context){
-        super(context, DATABASE_TABLE_NAME, null, DATABASE_VERSION);
+        super(context, DATABASE_TABLE_NAME_TAGS, null, DATABASE_VERSION);
         m_context = context;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(DATABASE_CREATE_PLAYER);
+        // add tables
+        db.execSQL(CREATE_TABLE_TAG_PLAYER);
+        db.execSQL(CREATE_TABLE_EVENT_PLAYER);
         m_db = db;
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_NAME_TAGS);
+        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_NAME_EVENTS);
         onCreate(db);
     }
 
+    public boolean addNewEvent(ArrayList<String> dataArray) {
+        // event info
 
-    public boolean insertTag(String id, String name) {
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("id", dataArray.get(0));
+            contentValues.put("title", dataArray.get(1));
+            contentValues.put("categories_main", dataArray.get(2));
+            contentValues.put("categories_sub_1", dataArray.get(3));
+            contentValues.put("categories_sub_2", dataArray.get(4));
+            contentValues.put("description", dataArray.get(5));
+            contentValues.put("address", dataArray.get(6));
+            contentValues.put("price", dataArray.get(7));
+            contentValues.put("url", dataArray.get(8));
+            contentValues.put("start_time", dataArray.get(9));
+            contentValues.put("end_time", dataArray.get(10));
+
+            db.insert(DATABASE_TABLE_NAME_EVENTS, null, contentValues);
+            Log.i(TAG, "event info is stored");
+
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "something went wrong with inserting data");
+            return false;
+        }
+
+
+    }
+
+
+    public boolean addNewTag(String id, String name) {
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues contentValues = new ContentValues();
             contentValues.put("name", name);
             contentValues.put("id", id);
-            db.insert("Tags", null, contentValues);
+            db.insert(DATABASE_TABLE_NAME_TAGS, null, contentValues);
             Log.i(TAG, "tag is stored");
             return true;
         }catch(Exception e){
             e.printStackTrace();
-            Log.i(TAG, "something went wrong with inserting data");
+            Log.e(TAG, "something went wrong with inserting data");
             return false;
         }
     }
 
-    public ArrayList<String> getData(int id){
-        ArrayList<String> array_list = new ArrayList<>();
+    public ArrayList<String> getAllIds(String tableName){
+        ArrayList<String> arrayList = new ArrayList<>();
         try {
             SQLiteDatabase db = this.getReadableDatabase();
-            Cursor res = db.rawQuery("select * from " + DATABASE_TABLE_NAME + " where id =" + id + "", null);
+            Cursor res = db.rawQuery("select id from " + tableName, null);
             res.moveToFirst();
             int count = res.getColumnCount();
-            Log.i(TAG, count+" count of tags in local db");
+            int count2 = res.getCount();
+            Log.i(TAG, count + " count of getcolumncount");
+            Log.i(TAG, count2 + " count of getcount");
+            while(!res.isAfterLast()){
+                arrayList.add(res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_ID)));
+                res.moveToNext();
+            }
+            res.close();
+            db.close();
+        }catch(Exception e){
+            Log.e(TAG, "wrong with table name or data stored in it");
+        }
+
+        return arrayList;
+    }
+
+    public ArrayList<String> getAllItemsById(int id, String tableName){
+
+        ArrayList<String> arrayList = new ArrayList<>();
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res = db.rawQuery("select * from " + tableName + " where id =" + id + "", null);
+            res.moveToFirst();
+            int count = res.getColumnCount();
+            Log.i(TAG, count + " count of items");
             while (count > 0) {
-                array_list.add(res.getString(--count));
+                arrayList.add(res.getString(--count));
                 Log.i(TAG, count + " value of count");
             }
             res.close();
             db.close();
         }catch(Exception e){
-            Log.i(TAG, "not exist info what you are looking for");
+            Log.e(TAG, "not exist info what you are looking for");
         }
-        return array_list;
+        return arrayList;
 
     }
 
-    public int numberOfRows(){
+    public int numberOfRows(String tableName){
         SQLiteDatabase db = this.getReadableDatabase();
-        int numRows = (int) DatabaseUtils.queryNumEntries(db, DATABASE_TABLE_NAME);
-        return numRows;
+        return (int) DatabaseUtils.queryNumEntries(db, tableName);
     }
 
     public Integer deleteTag (Integer id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(DATABASE_TABLE_NAME,
+        return db.delete(DATABASE_TABLE_NAME_TAGS,
                 "id = ? ",
                 new String[] {
                         Integer.toString(id)
@@ -105,32 +186,61 @@ public class LocalDB extends SQLiteOpenHelper{
 
 
     public ArrayList<String> getAllTagNames(){
-        ArrayList<String> array_list = new ArrayList<String>();
+        ArrayList<String> arrayList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from "+DATABASE_TABLE_NAME+"", null );
+        Cursor res =  db.rawQuery( "select * from "+DATABASE_TABLE_NAME_TAGS+"", null );
         res.moveToFirst();
 
-
-        while(res.isAfterLast() == false){
-            array_list.add(res.getString(res.getColumnIndex(COLUMN_NAME_TAG_NAME)));
+        while(!res.isAfterLast()){
+            arrayList.add(res.getString(res.getColumnIndex(COLUMN_NAME_TAG_NAME)));
             res.moveToNext();
         }
         res.close();
-        return array_list;
+        return arrayList;
     }
 
-    public boolean deleteTable(String tableName) {
+    public ArrayList<String> getAllEventTitles(){
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery("select * from " + DATABASE_TABLE_NAME_EVENTS + "", null);
+        res.moveToFirst();
+
+        while(!res.isAfterLast()){
+            arrayList.add(res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_TITLE)));
+            res.moveToNext();
+        }
+        res.close();
+        return arrayList;
+    }
+
+    public ArrayList<MetaDataForEvents> getMetaDataForEvents(){
+        ArrayList<MetaDataForEvents> arrayList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery("select * from " + DATABASE_TABLE_NAME_EVENTS + "", null);
+        res.moveToFirst();
+
+        // find all ids and titles and init by MetaDataForEvents class
+        while(!res.isAfterLast()){
+            arrayList.add(new MetaDataForEvents(res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_ID)), res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_TITLE))));
+            res.moveToNext();
+        }
+        res.moveToFirst();
+        res.close();
+        return arrayList;
+    }
+
+    public boolean emptyTables() {
         try {
-            m_context.deleteDatabase(tableName);
+            m_context.deleteDatabase("Tags");
             return true;
         }catch(Exception e){
-            Log.i(TAG, "Something went wrong with deleting");
+            Log.e(TAG, "Something went wrong with deleting");
             return false;
         }
     }
-
-
 
 
 

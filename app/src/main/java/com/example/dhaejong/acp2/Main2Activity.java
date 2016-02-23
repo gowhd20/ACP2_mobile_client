@@ -2,110 +2,157 @@ package com.example.dhaejong.acp2;
 
 import android.app.ListActivity;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
 
-public class Main2Activity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+
+public class Main2Activity extends ActionBarActivity {
 
     private String TAG = "Main2Activity";
     public static boolean isSettingsActivityActive = false;
+    private Tags mTags;
+
+    public ArrayList<String> ids = new ArrayList<>();
+    protected ArrayList<String> titles = new ArrayList<>();
+
+    Context context;
+
+    private void initListView(){
+        // query list of titles and ids from local db
+        final ArrayList<String> contentTitleList = mTags.mLocalDB.getAllEventTitles();
+
+        ArrayList<MetaDataForEvents> tempArray;
+        tempArray = mTags.mLocalDB.getMetaDataForEvents();
+
+        // store ids and titles locally, to avoid frequent query to database
+        for(MetaDataForEvents mMetaDataForEvents : tempArray ){
+            ids.add(mMetaDataForEvents.id);
+            titles.add(mMetaDataForEvents.title);
+        }
+
+        final ListView listview = (ListView) findViewById(R.id.listview);
+        final StableArrayAdapter adapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, contentTitleList);
+        listview.setAdapter(adapter);
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+                Log.d(TAG, view.toString());
+                Object test = parent.getItemAtPosition(position);
+                String testTxt = test.toString();
+
+                for(int i=0; i<ids.size(); i++){
+                    if(titles.get(i).equals(testTxt)){
+                        Intent contentIntent = new Intent(context, Events.class);
+                        contentIntent.putExtra("id", ids.get(i));
+                        contentIntent.putExtra("title", titles.get(i));
+
+                        startActivity(contentIntent);
+                        return;
+                    }
+                }
 
 
-    // This is the Adapter being used to display the list's data
-    SimpleCursorAdapter mAdapter;
+                //Log.d(TAG, "selected id is " + selectedItem.);
+                //t = mTags.mLocalDB.getAllItemsById(view.getId(), LocalDB.DATABASE_TABLE_NAME_EVENTS);
+                //Log.d(TAG, returnVal);
+                //selectedItem.setTag();
 
-    // These are the Contacts rows that we will retrieve
-    static final String[] PROJECTION = new String[] {ContactsContract.Data._ID,
-            ContactsContract.Data.DISPLAY_NAME};
 
-    // This is the select criteria
-    static final String SELECTION = "((" +
-            ContactsContract.Data.DISPLAY_NAME + " NOTNULL) AND (" +
-            ContactsContract.Data.DISPLAY_NAME + " != '' ))";
+               // }catch(Exception e){
+               //     Log.e(TAG, "failed to find item according to the item's id");
+               // }
+
+                /*final String item = (String) parent.getItemAtPosition(position);
+                view.animate().setDuration(2000).alpha(0)
+                        .withEndAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                //list.remove(item);
+                                //adapter.notifyDataSetChanged();
+                                //view.setAlpha(1);
+                                Intent viewContents = new Intent(context, Events.class);
+                                startActivity(viewContents);
+
+                            }
+                        });*/
+
+            }
+
+        });
+
+    }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        mTags = new Tags(Main2Activity.this, this);
 
-        // Create a progress bar to display while the list loads
-        ProgressBar progressBar = new ProgressBar(this);
-        progressBar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
-        progressBar.setIndeterminate(true);
-        getListView().setEmptyView(progressBar);
+        this.context = this;
 
-        // Must add the progress bar to the root of the layout
-        ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
-        root.addView(progressBar);
 
-        // For the cursor adapter, specify which columns go into which views
-        String[] fromColumns = {ContactsContract.Data.DISPLAY_NAME};
-        int[] toViews = {android.R.id.text1}; // The TextView in simple_list_item_1
-
-        // Create an empty adapter we will use to display the loaded data.
-        // We pass null for the cursor, then update it in onLoadFinished()
-        mAdapter = new SimpleCursorAdapter(this,
-                android.R.layout.simple_list_item_1, null,
-                fromColumns, toViews, 0);
-        setListAdapter(mAdapter);
-
-        // Prepare the loader.  Either re-connect with an existing one,
-        // or start a new one.
-        getLoaderManager().initLoader(0, null, this);
-
+        initListView();
 
     }
 
-    // Called when a new Loader needs to be created
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // Now create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-        return new CursorLoader(this, ContactsContract.Data.CONTENT_URI,
-                PROJECTION, SELECTION, null, null);
-    }
+    private class StableArrayAdapter extends ArrayAdapter<String> {
 
-    // Called when a previously created loader has finished loading
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        // Swap the new cursor in.  (The framework will take care of closing the
-        // old cursor once we return.)
-        mAdapter.swapCursor(data);
-    }
+        HashMap<String, Integer> mIdMap = new HashMap<>();
 
-    // Called when a previously created loader is reset, making the data unavailable
-    public void onLoaderReset(Loader<Cursor> loader) {
-        // This is called when the last Cursor provided to onLoadFinished()
-        // above is about to be closed.  We need to make sure we are no
-        // longer using it.
-        mAdapter.swapCursor(null);
+        public StableArrayAdapter(Context context, int textViewResourceId,
+                                  List<String> objects) {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+
+        @Override
+        public long getItemId(int position) {
+            String item = getItem(position);
+            return mIdMap.get(item);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
     }
 
     @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        // Do something when a list item is clicked
-        Intent contents = new Intent(this, Events.class);
-        startActivity(contents);
-
+    public void onResume(){
+        super.onResume();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
