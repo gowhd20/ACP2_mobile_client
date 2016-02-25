@@ -37,8 +37,7 @@ import java.util.List;
 
 public class Settings extends ActionBarActivity implements View.OnClickListener{
 
-    private String TAG = "Settings";
-    //public static List<Tags> tagsList;
+    private static final String TAG = "Settings";
     private Tags mTags;
     private static final int GET_TAG_NAME = 0;
     private AccessToken access_token;
@@ -47,6 +46,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     SharedPref mSharedPreference;
     CallbackManager callbackManager;
     FacebookMethods mFacebookMethods;
+    Thread postRequestThread;
 
     private void callDialog(String tagName, final int buttonId, final int textViewId){
 
@@ -99,7 +99,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 Intent intent = new Intent(context, CalendarService.class);
                 context.startService(intent);
                 // save checkbox state
-                mSharedPreference.saveInSp("checkbox", true);
+                mSharedPreference.saveInSp(SystemPreferences.CHECKBOX, true);
 
                 dialog.dismiss();
 
@@ -144,7 +144,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     }
 
     private int getTextViewIdByBtnId(int btnId){
-        return btnId + Tags.TEXTVIEW_IDENTIFIER;
+        return btnId + SystemPreferences.TEXTVIEW_IDENTIFIER;
     }
 
     private void initSettingsActivity(){
@@ -184,10 +184,9 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(this.getApplicationContext());    // this should come before setContentView
         setContentView(R.layout.activity_settings);
-        Main2Activity.isSettingsActivityActive = true;
+        SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
         mSharedPreference = new SharedPref(this);   // sharedpreference class
         mFacebookMethods = new FacebookMethods(this);
-        mFacebookMethods.queryFbData();             // query facebook data that will be stored in shared preference
 
 
         floatingBtn();  // call the adding tag button
@@ -212,14 +211,14 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             }
         });
 
-        mCheckbox.setChecked(mSharedPreference.getFromSP("checkbox"));                            // set checkbox by saved state
+        mCheckbox.setChecked(mSharedPreference.getFromSP(SystemPreferences.CHECKBOX));           // init checkbox by saved state
         mCheckbox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (((CheckBox) v).isChecked()) {
                     callDialog();
                 } else {
-                    mSharedPreference.saveInSp("checkbox", false);
+                    mSharedPreference.saveInSp(SystemPreferences.CHECKBOX, false);
                     Intent intent = new Intent(context, CalendarService.class);
                     context.stopService(intent);
                     Log.i(TAG, "User remove connection with calendar");
@@ -239,8 +238,20 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             @Override
             public void onSuccess(LoginResult loginResult) {
                 access_token = loginResult.getAccessToken();
-
+                SharedPref mSharedPref = new SharedPref(context);
+                mSharedPref.saveInSp(SystemPreferences.FACEBOOK_TOKEN, access_token.getToken());    //  save/update facebook token
+                mFacebookMethods.queryFbData();             // query facebook data that will be stored in shared preference
                 Log.d(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
+
+                // register user info to the server
+                postRequestThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        httpNetwork mHttpNet = new httpNetwork(context);
+                        mHttpNet.registerUserRequest();
+                    }
+                });
+                postRequestThread.start();
 
             }
 
@@ -263,7 +274,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        Main2Activity.isSettingsActivityActive = false;
+        SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = false;
     }
 
     @Override
@@ -282,9 +293,9 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
 
-                if(!Main2Activity.isSettingsActivityActive) {
+                if(!SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE) {
                     Intent intent = new Intent(this, Settings.class);
-                    Main2Activity.isSettingsActivityActive = true;
+                    SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
                     Log.i(TAG, "Settings.java is starting");
                     startActivity(intent);
                     return true;
@@ -333,6 +344,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
         switch(requestCode) {
             case GET_TAG_NAME:
+                // item from search list selected
                 if (resultCode == RESULT_OK) {
                     try {
                         int newButtonId = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));

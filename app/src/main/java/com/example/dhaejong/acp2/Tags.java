@@ -14,10 +14,18 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by dhaejong on 2.2.2016.
@@ -25,15 +33,16 @@ import java.util.List;
 public class Tags {
 
     private String TAG = "Tags";
-    private ArrayList<String> tag_names;
     private Context context;
     private Activity activity;
-    public final static int TEXTVIEW_IDENTIFIER = 111111;
 
     public int countTagsInList;      // count of tags in the interest list
-    public String[] tags;
+    //public String[] tags;
     public String[] tempAddedTags;
     public LocalDB mLocalDB;
+    public JsonArray categoriesJsonArr;
+
+    protected ArrayList<String> tagNames;
 
     Tags(Context context, Activity activity){
         this.context = context;
@@ -42,29 +51,31 @@ public class Tags {
         this.countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
         //mLocalDB.emptyTables();           // for test purpose *******************************//
 
-
-        this.tags = new String[]{"science", "party", "education", "job", "course", "music"};
         this.tempAddedTags = new String[]{};
-        this.tag_names = new ArrayList<>();
-        tag_names.addAll(Arrays.asList(tags));
+        this.tagNames = new ArrayList<>();
 
+        // category list has been queried before
+        if(ifHasCategories()) {
+            int count = 0;
+            while(categoriesJsonArr.size()>count) {
+                String temp = categoriesJsonArr.get(count).getAsJsonObject().get("category").toString();
+                temp = temp.replace("\"", "");
+                Log.d(TAG, temp);// categoriesJsonArr.get(count).getAsJsonObject().get("category").toString());
+                this.tagNames.add(temp);//categoriesJsonArr.get(count).getAsJsonObject().get("category").toString());
+                count++;
+            }
+            Log.d(TAG, this.tagNames.toString());
+        }
     }
 
-
     public ArrayList<String> addTags(String name){
-        this.tag_names.add(name);
-        return this.tag_names;
+        this.tagNames.add(name);
+        return this.tagNames;
     }
 
 
     public ArrayList<String> getTagList(){
-        return this.tag_names;
-    }
-
-    public String getTagItem(String name){
-        String foundTag="";
-
-        return foundTag;
+        return this.tagNames;
     }
 
     protected int getTextViewIdByBtnId(int btnId){
@@ -75,8 +86,25 @@ public class Tags {
 
     }
 
+    public boolean ifHasCategories(){
+        CategoryList mCategory = new CategoryList();
+        String categories = mCategory.getCategories();
+        Gson mGson = new Gson();
+        try {
+            mGson.toJson(categories);
+            categoriesJsonArr = mGson.fromJson(categories, JsonArray.class);
+
+            Log.d(TAG, categoriesJsonArr.toString());
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "category is yet empty");
+        }
+        return false;
+    }
+
     public int getNumberOfTags(){
-        return this.tags.length;
+        return this.categoriesJsonArr.size(); //tags.length;
     }
 
     public boolean isExistingTag(String tagName){
@@ -117,8 +145,8 @@ public class Tags {
         // if tag is already added, return 0 or return tag id
 
         ArrayList<String> tempArrayList;
-        int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
-        int txtId = btnId + TEXTVIEW_IDENTIFIER;
+        int btnId = generateRandomId();
+        int txtId = btnId + SystemPreferences.TEXTVIEW_IDENTIFIER;
 
         if(mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS) != 0) {
             // do not query for exist tag name when it's very first time
@@ -187,11 +215,16 @@ public class Tags {
 
     public int initAddTagToInterest(Context context, String tagName){
         int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
-        int txtId = btnId + TEXTVIEW_IDENTIFIER;
+        int txtId = btnId + SystemPreferences.TEXTVIEW_IDENTIFIER;
 
         addTagToView(context, tagName, btnId, txtId);
 
         return btnId;
+    }
+
+    public int generateRandomId(){
+        Random r = new Random();
+        return r.nextInt(899997 - 100000 + 1) + 100000;
     }
 
 }

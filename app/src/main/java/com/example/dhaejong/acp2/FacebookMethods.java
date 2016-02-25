@@ -43,10 +43,14 @@ public class FacebookMethods {
                             public void onCompleted(JSONObject jsonObject, GraphResponse response) {
                                 try {
                                     Log.d(TAG, response.toString());
-                                    Object obj = jsonObject.get("email");
-                                    Log.d(TAG, obj.toString());
+                                    Object nameObj = jsonObject.get("name");
+                                    Object emailObj = jsonObject.get("email");
+                                    Object facebookIdObj = jsonObject.get("id");
+                                    Log.d(TAG, emailObj.toString());
                                     SharedPref mSharedPref = new SharedPref(context);
-                                    mSharedPref.saveInSp("user_email", obj.toString());             // store user email to sharedpreference
+                                    mSharedPref.saveInSp(SystemPreferences.EMAIL, emailObj.toString());             // store user email to sharedpreference
+                                    mSharedPref.saveInSp(SystemPreferences.FACEBOOK_ID, facebookIdObj.toString());  // store user facebook id ...
+                                    mSharedPref.saveInSp(SystemPreferences.USER_NAME, nameObj.toString());          // store user name ...
 
                                 } catch (Exception e) {
                                     e.printStackTrace();

@@ -19,7 +19,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
 
-    private GoogleMap mMap;
+    GoogleMap mMap;
 
     @Override
     public void onMapReady(GoogleMap googleMap) {

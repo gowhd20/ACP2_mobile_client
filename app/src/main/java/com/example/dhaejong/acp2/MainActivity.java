@@ -3,23 +3,35 @@ package com.example.dhaejong.acp2;
 import android.content.Context;
 import android.content.Intent;
 
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    private String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
+
     Context context = this;
+    Thread postRequestThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,49 +53,87 @@ public class MainActivity extends ActionBarActivity {
 
         Tags mTags = new Tags(MainActivity.this, this);
         EnableGcm mGcm = new EnableGcm(context, MainActivity.this);
-        mGcm.initGcm();                                                      // set all services of gcm
+        mGcm.initGcm();                                               // set all services of gcm
 
+        mTags.mLocalDB.dropDB();
+        // if user uses this app first time
+        // open mainActivity and register user to the server
+        int tagCount = mTags.countTagsInList;
+        if(SystemPreferences.IS_YOUR_FIRST_PLAY){
+            // or first time user
+            // user must register their info to the server
+            // possibly register here without facebook id and token
+            postRequestThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    httpNetwork mHttpNet = new httpNetwork(context);
+                    mHttpNet.registerUserRequest();
+                }
+            });
+            postRequestThread.start();
+            SystemPreferences.IS_YOUR_FIRST_PLAY = false;
 
-        if(mTags.countTagsInList != 0 ){
-            // not first time use
-            Intent intent = new Intent(this, Main2Activity.class);
-            startActivity(intent);
+        }else{
+            // if user uses this app not first time but has no tags added
+            // open mainActivity to give more introduction
+            if(tagCount != 0 ){
+                Intent intent = new Intent(this, Main2Activity.class);
+                startActivity(intent);
+            }
         }
 
+        // configure calendar query service as saved state
+        SharedPref mSharedPreference = new SharedPref(this);
+        if(mSharedPreference.getFromSP(SystemPreferences.CHECKBOX)){
+            Intent calIntent = new Intent(this, CalendarService.class);
+            startService(calIntent);
+        }
 
-        /*
-        //mTags.mLocalDB.deleteTable("Tags");
+        // get ids of this device for credential issue
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wInfo = wifiManager.getConnectionInfo();
+        String macAddress = wInfo.getMacAddress();
+        Log.d(TAG, macAddress);
+        TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+        Log.d("ID", "Android ID: " + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+        Log.d("ID", "Device ID : " + tm.getDeviceId());
+
+        SharedPref mSharedPref = new SharedPref(this);
+        mSharedPref.saveInSp(SystemPreferences.MAC_ADDRESS, macAddress);
+        mSharedPref.saveInSp(SystemPreferences.ANDROID_ID, android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+        mSharedPref.saveInSp(SystemPreferences.DEVICE_ID, tm.getDeviceId());
+
+        Intent intent = new Intent(this, httpService.class);
+        startService(intent);
+
+/*
+
         ArrayList<String> list = new ArrayList<>();
         list.add("9");
         list.add("tivoli hot bitch party");
-        list.add("2");
-        list.add("");
-        list.add("");
+        list.add("bubble");
         list.add("As the weather is getting warmer, the streets are icy and the snow is falling from the roofs on your head, you know: " +
                 "Summer is almost here! To accelerate the process a bit, we are already throwing you a beach party. So bring your beach toys, " +
                 "leave your winter clothes at home and be ready to feel the heat on your bum and the sand between your toes. As always, " +
                 "with more than student friendly prices, wink wink! ");
         list.add("Tivoli");
-        list.add("2€ in advance, 4€ from the door, free entry with ESN Card");
+        list.add("2 in advance, 4 from the door, free entry with ESN Card");
         list.add("https://www.facebook.com/events/1662196667386875/");
         list.add("2016-02-18 22:00:00");
         list.add("");
 
         boolean result = mTags.mLocalDB.addNewEvent(list);
         if(result){
-            list = mTags.mLocalDB.getAllItems(9, LocalDB.DATABASE_TABLE_NAME_EVENTS);
+            list = mTags.mLocalDB.getAllItemsById(9, LocalDB.DATABASE_TABLE_NAME_EVENTS);
             Log.d(TAG, list.toString());
 
         }else{
             Log.e(TAG, "wrong");
-        }*/
-
-        //list = mTags.mLocalDB.getAllItems(10, LocalDB.DATABASE_TABLE_NAME_EVENTS);
-        //Log.d(TAG, list.toString());
-
-
+        }
+        */
 
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,9 +149,9 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_settings:
-                if(!Main2Activity.isSettingsActivityActive) {
+                if(!SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE) {
                     Intent intent = new Intent(this, Settings.class);
-                    Main2Activity.isSettingsActivityActive = true;
+                    SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
                     Log.i(TAG, "Settings.java is starting");
                     startActivity(intent);
                     return true;
@@ -125,6 +175,10 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onResume(){
         super.onResume();
+    }
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
     }
 
 

@@ -9,35 +9,30 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.quinny898.library.persistentsearch.SearchBox;
 import com.quinny898.library.persistentsearch.SearchResult;
 import com.quinny898.library.persistentsearch.SearchBox.SearchListener;
-import com.quinny898.library.persistentsearch.SearchResult;
-
-import java.util.ArrayList;
 
 
 public class SearchTags extends ActionBarActivity {
 
-    private SearchBox search;
+    SearchBox search;
+    LocalDB mLocalDB;
+
     private Context context;
-    private LocalDB mLocalDB;
     private Tags mTags;
-    private String TAG = "SearchTags";
+    private static final String TAG = "SearchTags";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +64,9 @@ public class SearchTags extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            if(!Main2Activity.isSettingsActivityActive) {
+            if(!SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE) {
                 Intent intent = new Intent(this, Settings.class);
-                Main2Activity.isSettingsActivityActive = true;
+                SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
                 Log.i(TAG, "Settings.java is starting");
                 startActivity(intent);
                 return true;
@@ -117,8 +112,9 @@ public class SearchTags extends ActionBarActivity {
         search.enableVoiceRecognition(this);
 
         // set list of preview items
-        for(int i = 0; i < countTags; i++){
-            SearchResult option = new SearchResult(mTags.tags[i], ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
+        for(int i=0; i<countTags; i++){
+            SearchResult option = new SearchResult(mTags.tagNames.get(i),          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
+                    ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
             search.addSearchable(option);
         }
         // menu listener for one at the left top corner

@@ -2,6 +2,7 @@ package com.example.dhaejong.acp2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SyncAdapterType;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -32,7 +33,6 @@ import java.util.List;
 public class Events extends ActionBarActivity {
 
     private static final String TAG = "Events";
-    private static final String currentCityOfUser = "Oulu"; // TODO: save current city where user is staying, search with pre-defined interval
 
     Context context = this;
     LocalDB mLocalDB;
@@ -202,7 +202,7 @@ public class Events extends ActionBarActivity {
                 if (isGoogleMapsInstalled()) {
                     // if this mobile app has google map application
                     Object obj = v.getTag();
-                    Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + obj.toString()+" "+currentCityOfUser));
+                    Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + obj.toString()+" "+ SystemPreferences.CURRENT_CITY_OF_USERS));
                     startActivity(searchAddress);
                 } else {
                     // if this mobile has not google map application, run my custom google map
@@ -246,13 +246,11 @@ public class Events extends ActionBarActivity {
         Log.d(TAG, selectedAllInfo.toString());
 
         // title
-        if(!selectedAllInfo.get(9).isEmpty()){
-            //LinearLayout title = addTitle(selectedAllInfo.get(9));
-            mainLayout.addView(addTitle(selectedAllInfo.get(9)));
+        if(!selectedAllInfo.get(7).isEmpty()){
+            mainLayout.addView(addTitle(selectedAllInfo.get(7)));
         }
         // description
         if(!selectedAllInfo.get(5).isEmpty()){
-            //LinearLayout addDescription
             mainLayout.addView(addDescription(selectedAllInfo.get(5)));
         }
         // address
@@ -297,9 +295,9 @@ public class Events extends ActionBarActivity {
             case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
 
-                if(!Main2Activity.isSettingsActivityActive) {
+                if(!SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE) {
                     Intent intent = new Intent(this, Settings.class);
-                    Main2Activity.isSettingsActivityActive = true;
+                    SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
                     Log.i(TAG, "Settings.java is starting");
                     startActivity(intent);
                     return true;

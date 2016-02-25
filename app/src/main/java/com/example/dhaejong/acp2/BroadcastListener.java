@@ -19,12 +19,17 @@ public class BroadcastListener extends BroadcastReceiver {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
             Log.i(TAG, "detect a reboot in BroadcastListener.java");
 
+            // restart get request service
+            Intent httpRequestIntent = new Intent(context, httpService.class);
+            context.startService(httpRequestIntent);
+
+            // restart calendar service
             SharedPref mSharedPreference = new SharedPref(context);
-            mSharedPreference.saveInSp("checkbox", true);
-            if(mSharedPreference.getFromSP("checkbox")){
+            //mSharedPreference.saveInSp("checkbox", true);
+            if(mSharedPreference.getFromSP(SystemPreferences.CHECKBOX)){
                 Intent calIntent = new Intent(context, CalendarService.class);
                 context.startService(calIntent);
-                Log.i(TAG, "re started CalendarService");
+                Log.i(TAG, "restarted CalendarService");
             }else{
             }
 

@@ -1,13 +1,7 @@
 package com.example.dhaejong.acp2;
 
-import android.app.ListActivity;
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
-import android.database.Cursor;
-import android.provider.ContactsContract;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -15,17 +9,10 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.SimpleCursorAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,10 +22,9 @@ import java.util.List;
 public class Main2Activity extends ActionBarActivity {
 
     private String TAG = "Main2Activity";
-    public static boolean isSettingsActivityActive = false;
     private Tags mTags;
 
-    public ArrayList<String> ids = new ArrayList<>();
+    protected ArrayList<String> ids = new ArrayList<>();
     protected ArrayList<String> titles = new ArrayList<>();
 
     Context context;
@@ -54,6 +40,8 @@ public class Main2Activity extends ActionBarActivity {
         for(MetaDataForEvents mMetaDataForEvents : tempArray ){
             ids.add(mMetaDataForEvents.id);
             titles.add(mMetaDataForEvents.title);
+            Log.d(TAG, ids.toString());
+            Log.d(TAG, titles.toString());
         }
 
         final ListView listview = (ListView) findViewById(R.id.listview);
@@ -119,7 +107,6 @@ public class Main2Activity extends ActionBarActivity {
 
         this.context = this;
 
-
         initListView();
 
     }
@@ -171,9 +158,9 @@ public class Main2Activity extends ActionBarActivity {
             case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
 
-                if(!isSettingsActivityActive) {
+                if(!SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE) {
                     Intent intent = new Intent(this, Settings.class);
-                    Main2Activity.isSettingsActivityActive = true;
+                    SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
                     Log.i(TAG, "Settings.java is starting");
                     startActivity(intent);
                     return true;

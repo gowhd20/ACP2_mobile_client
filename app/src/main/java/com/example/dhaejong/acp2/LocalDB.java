@@ -20,7 +20,6 @@ public class LocalDB extends SQLiteOpenHelper{
 
     private String TAG = "LocalDB";
 
-    private SQLiteDatabase myDatabase;
     private static final String DATABASE_NAME = "localDb.sqlite";
     public static final String DATABASE_TABLE_NAME_TAGS = "Tags";
     public static final String DATABASE_TABLE_NAME_EVENTS = "Events";
@@ -33,9 +32,7 @@ public class LocalDB extends SQLiteOpenHelper{
     // colume names for table events
     public static final String COLUMN_NAME_EVENT_ID = "id";
     public static final String COLUMN_NAME_EVENT_TITLE = "title";
-    public static final String COLUMN_NAME_EVENT_CATEGORIES_MAIN = "categories_main";
-    public static final String COLUMN_NAME_EVENT_CATEGORIES_SUB_1 = "categories_sub_1";
-    public static final String COLUMN_NAME_EVENT_CATEGORIES_SUB_2 = "categories_sub_2";
+    public static final String COLUMN_NAME_EVENT_CATEGORIES = "categories";
     public static final String COLUMN_NAME_EVENT_DESCRIPTION = "description";
     public static final String COLUMN_NAME_EVENT_ADDRESS = "address";
     public static final String COLUMN_NAME_EVENT_PRICE = "price";
@@ -48,8 +45,7 @@ public class LocalDB extends SQLiteOpenHelper{
             "("+COLUMN_NAME_TAG_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
 
     private static final String CREATE_TABLE_EVENT_PLAYER = "create table if not exists "+DATABASE_TABLE_NAME_EVENTS+" " +
-            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES_MAIN+" integer not null, " +
-            COLUMN_NAME_EVENT_CATEGORIES_SUB_1+" integer, "+COLUMN_NAME_EVENT_CATEGORIES_SUB_2+" integer, " +
+            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES+" text not null, " +
             COLUMN_NAME_EVENT_DESCRIPTION+" longtext not null, "+COLUMN_NAME_EVENT_ADDRESS+" text not null, "+COLUMN_NAME_EVENT_PRICE+" text, "+
             COLUMN_NAME_EVENT_IMAGE_URL+ " text, "+COLUMN_NAME_EVENT_START_TIME+" datetime not null, "+COLUMN_NAME_EVENT_END_TIME+" datetime)";
 
@@ -57,7 +53,7 @@ public class LocalDB extends SQLiteOpenHelper{
     public SQLiteDatabase m_db;
 
     LocalDB(Context context){
-        super(context, DATABASE_TABLE_NAME_TAGS, null, DATABASE_VERSION);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
         m_context = context;
     }
 
@@ -82,19 +78,18 @@ public class LocalDB extends SQLiteOpenHelper{
         try {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues contentValues = new ContentValues();
-            contentValues.put("id", dataArray.get(0));
-            contentValues.put("title", dataArray.get(1));
-            contentValues.put("categories_main", dataArray.get(2));
-            contentValues.put("categories_sub_1", dataArray.get(3));
-            contentValues.put("categories_sub_2", dataArray.get(4));
-            contentValues.put("description", dataArray.get(5));
-            contentValues.put("address", dataArray.get(6));
-            contentValues.put("price", dataArray.get(7));
-            contentValues.put("url", dataArray.get(8));
-            contentValues.put("start_time", dataArray.get(9));
-            contentValues.put("end_time", dataArray.get(10));
+            contentValues.put(COLUMN_NAME_EVENT_ID, dataArray.get(0));
+            contentValues.put(COLUMN_NAME_EVENT_TITLE, dataArray.get(1));
+            contentValues.put(COLUMN_NAME_EVENT_CATEGORIES, dataArray.get(2));
+            contentValues.put(COLUMN_NAME_EVENT_DESCRIPTION, dataArray.get(3));
+            contentValues.put(COLUMN_NAME_EVENT_ADDRESS, dataArray.get(4));
+            contentValues.put(COLUMN_NAME_EVENT_PRICE, dataArray.get(5));
+            contentValues.put(COLUMN_NAME_EVENT_IMAGE_URL, dataArray.get(6));
+            contentValues.put(COLUMN_NAME_EVENT_START_TIME, dataArray.get(7));
+            contentValues.put("end_time", dataArray.get(8));
 
             db.insert(DATABASE_TABLE_NAME_EVENTS, null, contentValues);
+            db.close();
             Log.i(TAG, "event info is stored");
 
             return true;
@@ -103,8 +98,6 @@ public class LocalDB extends SQLiteOpenHelper{
             Log.e(TAG, "something went wrong with inserting data");
             return false;
         }
-
-
     }
 
 
@@ -115,6 +108,7 @@ public class LocalDB extends SQLiteOpenHelper{
             contentValues.put("name", name);
             contentValues.put("id", id);
             db.insert(DATABASE_TABLE_NAME_TAGS, null, contentValues);
+            db.close();
             Log.i(TAG, "tag is stored");
             return true;
         }catch(Exception e){
@@ -155,10 +149,10 @@ public class LocalDB extends SQLiteOpenHelper{
             Cursor res = db.rawQuery("select * from " + tableName + " where id =" + id + "", null);
             res.moveToFirst();
             int count = res.getColumnCount();
-            Log.i(TAG, count + " count of items");
+            Log.d(TAG, count + " count of items");
             while (count > 0) {
                 arrayList.add(res.getString(--count));
-                Log.i(TAG, count + " value of count");
+                Log.d(TAG, count + " value of count");
             }
             res.close();
             db.close();
@@ -197,6 +191,7 @@ public class LocalDB extends SQLiteOpenHelper{
             res.moveToNext();
         }
         res.close();
+        db.close();
         return arrayList;
     }
 
@@ -212,6 +207,7 @@ public class LocalDB extends SQLiteOpenHelper{
             res.moveToNext();
         }
         res.close();
+        db.close();
         return arrayList;
     }
 
@@ -229,12 +225,13 @@ public class LocalDB extends SQLiteOpenHelper{
         }
         res.moveToFirst();
         res.close();
+        db.close();
         return arrayList;
     }
 
-    public boolean emptyTables() {
+    public boolean dropDB() {
         try {
-            m_context.deleteDatabase("Tags");
+            m_context.deleteDatabase(DATABASE_NAME);
             return true;
         }catch(Exception e){
             Log.e(TAG, "Something went wrong with deleting");
