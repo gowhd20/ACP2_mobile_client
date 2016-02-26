@@ -41,21 +41,6 @@ public class httpService extends Service {
             CategoryList mCategory = new CategoryList();
             mCategory.setCategories(response);
 
-
-            // TODO: modern style, will do later
-            /*
-            ArrayList<String> test = new ArrayList<>();
-            test.add(response);
-            CategoryList cList = new CategoryList(test);
-            //tags = cList.categories;
-            //Log.d(TAG, cList.toString());
-            for(CategoryList m : tags){
-                for(int i=0; i<m.categories.size(); i++) {
-                    nTags.add(m.categories.get(i));
-                    Log.d(TAG, m.categories.get(i));
-                }
-            }*/
-
             // save id of category in sharedpreference for future post
             SharedPref mSharedPref = new SharedPref(this);
             mSharedPref.saveInSp(SystemPreferences.CATEGORY_ID_IN_USE, categoryId);

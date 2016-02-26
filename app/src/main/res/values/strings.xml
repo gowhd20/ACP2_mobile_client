@@ -15,6 +15,7 @@
     <string name="facebook_app_id">928408073903575</string>
     <string name="title_activity_events">Events</string>
     <string name="title_activity_google_map">GoogleMapActivity</string>
+    <string name="checkbox_text">Connect with my Calendar events</string>
 
 
     <string name="gcm_send_message">Token retrieved and sent to server! You can now use gcmsender to

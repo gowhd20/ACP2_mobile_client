@@ -35,7 +35,7 @@ public class SystemPreferences {
     public static final String DATA_NOT_COLLAPSED = "do_not_collapse";
 
     // http request intervals
-    public static final int GET_CATEGORY_REQUEST_INTERVAL = 10000;
+    public static final int GET_CATEGORY_REQUEST_INTERVAL = 100000;
     public static final int POST_USER_REGISTER_REQUEST_INTERVAL = 100000;
 
 

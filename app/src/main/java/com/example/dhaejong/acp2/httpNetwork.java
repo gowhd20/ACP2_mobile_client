@@ -4,8 +4,15 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import org.json.JSONArray;
+
 import java.io.IOException;
+import java.util.ArrayList;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -25,6 +32,11 @@ public class httpNetwork {
     OkHttpClient client;
     SharedPref mSharedPref;
     JsonMethods mJsonMethods;
+    Request request;
+    Response response;
+    RequestBody requestBody;
+    HttpCallback cb;
+
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "httpNetwork";
 
@@ -38,11 +50,11 @@ public class httpNetwork {
     }
 
     public String getRequest(String url) throws IOException{
-        Request request = new Request.Builder()
+        request = new Request.Builder()
                 .url(url)
                 .build();
 
-        Response response = client.newCall(request).execute();
+        response = client.newCall(request).execute();
         String res = response.body().string();
         response.body().close();
         return res;
@@ -62,8 +74,8 @@ public class httpNetwork {
 
     public void postRequest(String url, JsonObject json, final HttpCallback cb) throws IOException {
 
-        RequestBody requestBody = RequestBody.create(JSON, new Gson().toJson(json));
-        Request request = new Request.Builder()
+        requestBody = RequestBody.create(JSON, new Gson().toJson(json));
+        request = new Request.Builder()
                 .url(url)
                 .post(requestBody)
                 .addHeader("Accept", "application/json")
@@ -84,9 +96,10 @@ public class httpNetwork {
         });
     }
 
+
     public void deleteUserCategoryReq(int id){
 
-        HttpCallback cb = new HttpCallback() {
+        cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 // TODO:
@@ -95,21 +108,47 @@ public class httpNetwork {
             @Override
             public void onSuccess(Response response) {
                 Log.d(TAG, response.toString()+" -> delete user category response");
+
             }
         };
         try {
-            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(mSharedPref.getDataForUserRegistration());
+            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(SystemPreferences.USER_ID, id);
             //postRequest(SystemPreferences.POST_REGISTER_USER_URL, categoryObj, cb);
 
         }catch(Exception e){
             e.printStackTrace();
-            Log.e(TAG, "failed");
+            Log.e(TAG, "delete user failed");
+        }
+    }
+
+    public void updateCalendarReq(JsonArray calEvents){
+        cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                Log.d(TAG, response.toString()+" -> update calendar event response");
+            }
+        };
+        JsonElement test = calEvents.get(0);
+        JsonObject tes2 = test.getAsJsonObject();
+
+        Log.d(TAG, tes2.toString());
+        try {
+            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, calEvents.getAsJsonObject(), cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "calendar update failed");
         }
     }
 
 
     public void registerUserCategoryReq(int id){
-        HttpCallback cb = new HttpCallback() {
+        cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 // TODO:
@@ -126,12 +165,12 @@ public class httpNetwork {
 
         }catch(Exception e){
             e.printStackTrace();
-            Log.e(TAG, "failed");
+            Log.e(TAG, "register user category failed");
         }
     }
 
     public void registerUserRequest(){
-        HttpCallback cb = new HttpCallback() {
+        cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 // TODO:
@@ -144,17 +183,17 @@ public class httpNetwork {
             }
         };
         try {
-            //JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
-            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
+            JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
+            postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
 
         }catch(Exception e){
             e.printStackTrace();
-            Log.e(TAG, "failed");
+            Log.e(TAG, "register user failed");
         }
     }
 
     public void registerMacAddrRequest(){
-        HttpCallback cb = new HttpCallback() {
+        cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 // TODO:
@@ -163,7 +202,6 @@ public class httpNetwork {
             @Override
             public void onSuccess(Response response) {
                 Log.d(TAG, response.toString()+" -> register mac_address response");
-                // TODO: save user id in sharedpref
             }
         };
 
@@ -173,7 +211,7 @@ public class httpNetwork {
 
         }catch(Exception e){
             e.printStackTrace();
-            Log.e(TAG, "failed");
+            Log.e(TAG, "register mac address failed");
         }
     }
 }

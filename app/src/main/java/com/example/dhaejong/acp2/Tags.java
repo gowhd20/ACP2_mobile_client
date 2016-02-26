@@ -170,16 +170,13 @@ public class Tags {
         // checking first if user has added this tag before
         // if tag is already added, return 0 or return tag id
 
-        ArrayList<String> tempArrayList;
+        ArrayList<String> tempArr;
         int btnId = generateRandomId();
         int txtId = btnId + SystemPreferences.TEXTVIEW_IDENTIFIER;
 
+        // do not query for exist tag name when it's very first time
         if(mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS) != 0) {
-            // do not query for exist tag name when it's very first time
-            tempArrayList = mLocalDB.getAllItemsById(btnId, LocalDB.DATABASE_TABLE_NAME_TAGS);
-
-
-            if (tempArrayList.isEmpty()) {
+            if (!mLocalDB.checkNameExistInTags(tagName)) {
                 // not first time execution
                 addTagToView(context, tagName, btnId, txtId);
 
@@ -239,13 +236,23 @@ public class Tags {
         outerLayout.addView(innerLayout);
     }
 
-    public int initAddTagToInterest(Context context, String tagName){
-        int btnId = context.getResources().getIdentifier(tagName, "id", context.getPackageName());
-        int txtId = btnId + SystemPreferences.TEXTVIEW_IDENTIFIER;
+    public ArrayList<String> initAddTagToInterest(Context context){
+        ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> names = new ArrayList<>();
+        ArrayList<Metadata> metaArr = mLocalDB.getMetaDataForTags();
 
-        addTagToView(context, tagName, btnId, txtId);
+        if(!metaArr.isEmpty()) {
+            for(Metadata mMeta : metaArr){
+                ids.add(mMeta.id);
+                names.add(mMeta.title);
+                addTagToView(context, mMeta.title, Integer.valueOf(mMeta.id)
+                        , Integer.valueOf(mMeta.id)+SystemPreferences.TEXTVIEW_IDENTIFIER);
+            }
+        }else{
+            Log.e(TAG, "Local db is empty");
+        }
 
-        return btnId;
+        return ids;
     }
 
     public int generateRandomId(){

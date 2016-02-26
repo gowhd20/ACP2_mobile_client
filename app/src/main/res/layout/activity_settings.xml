@@ -62,7 +62,6 @@
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="33dp"
             android:orientation="horizontal"
-            android:layout_weight="1"
             app:backgroundTint="#FF0000"/>
 
 
@@ -72,7 +71,7 @@
             android:id="@+id/ScrollView"
             android:fillViewport="false"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="125dp"
             android:background="#FFFFFF"
             android:baselineAligned="false"
             android:layout_gravity="bottom"
@@ -84,7 +83,7 @@
             <LinearLayout
                 android:id="@+id/ButtonsLayout"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical">
 
 
@@ -102,13 +101,11 @@
 
     </RelativeLayout >
     <LinearLayout
-        android:layout_alignParentStart="true"
         android:orientation="vertical"
         android:layout_weight="1"
         android:layout_height="fill_parent"
         android:layout_width="fill_parent"
         android:layout_marginTop="5dp"
-        android:layout_below="@+id/middle"
         android:id="@+id/bottom">
 
 
@@ -116,9 +113,8 @@
             android:id="@+id/checkBoxForCalendar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Use my Calendar "
+            android:text="@string/checkbox_text"
             android:checked="false"
-            android:layout_below="@+id/middle"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="5dp"
             android:saveEnabled="true"/>

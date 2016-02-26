@@ -18,68 +18,63 @@ import java.util.ArrayList;
 public class JsonMethods {
 
     private static final String TAG = "JsonMethods";
+    JsonObject datasetObj;
     JsonMethods(){}
 
-    public JSONObject getEventJson(JSONArray eventJsonArray) {
-        // wrong
-        JSONObject eventObj = new JSONObject();
-
-        try {
-            eventObj.get("user_id");
-            eventObj.get("event");
-            eventObj.get("id");
-            eventObj.get("title");
-            eventObj.get("categories");
-            eventObj.get("description");
-            eventObj.get("address");
-            eventObj.get("price");
-            eventObj.get("image_url");
-            eventObj.get("start_timestamp");
-            eventObj.get("end_timestamp");
-        }catch(JSONException e){
-            e.printStackTrace();
-        }
-
-        return eventObj;
-    }
-
     public JsonObject getUserInfoJson(ArrayList<String> dataArray) {
-        JsonObject userInfoObj = new JsonObject();
+        datasetObj = new JsonObject();
         try {
-            userInfoObj.addProperty("facebook_id", dataArray.get(0));
-            userInfoObj.addProperty("email_address", dataArray.get(1));
-            userInfoObj.addProperty("full_name", dataArray.get(2));
-            userInfoObj.addProperty("short_token", dataArray.get(3));
-            userInfoObj.addProperty("google_id", dataArray.get(4));
+            datasetObj.addProperty("facebook_id", dataArray.get(0));
+            datasetObj.addProperty("email_address", dataArray.get(1));
+            datasetObj.addProperty("full_name", dataArray.get(2));
+            datasetObj.addProperty("short_token", dataArray.get(3));
+            datasetObj.addProperty("google_id", dataArray.get(4));
         }catch(JsonIOException e){
             e.printStackTrace();
         }
 
-        return userInfoObj;
+        return datasetObj;
     }
 
-    public JsonObject getUserCategoryJson(ArrayList<String> dataArray) {
-        JsonObject userCategoryJson = new JsonObject();
+    public JsonObject getUserCategoryJson(String userId, String categoryId) {
+        datasetObj = new JsonObject();
         try {
-            userCategoryJson.addProperty("user_id", dataArray.get(0));
-            userCategoryJson.addProperty("category_id", dataArray.get(1));
+            datasetObj.addProperty("user_id", userId);
+            datasetObj.addProperty("category_id", categoryId);
 
         }catch(JsonIOException e){
             e.printStackTrace();
         }
 
-        return userCategoryJson;
+        return datasetObj;
     }
 
-    public JsonObject getUserMacAddrInfoJson(ArrayList<String> dataArray) {
-        JsonObject macAddr = new JsonObject();
+    public JsonObject getUserMacAddrInfoJson(String userId, String mac) {
+        datasetObj = new JsonObject();
         try {
-            macAddr.addProperty("user_id", dataArray.get(0));
-            macAddr.addProperty("mac_address", dataArray.get(1));
+            datasetObj.addProperty("user_id", userId);
+            datasetObj.addProperty("mac_address", mac);
         }catch(JsonIOException e){
             e.printStackTrace();
         }
 
-        return macAddr;
+        return datasetObj;
     }
+
+    public JsonObject getCalendarInfoJson(ArrayList<String> dataArray) {
+        datasetObj = new JsonObject();
+        try {
+            datasetObj.addProperty("event_id", dataArray.get(0));
+            datasetObj.addProperty("title", dataArray.get(1));
+            datasetObj.addProperty("description", dataArray.get(2));
+            datasetObj.addProperty("start_timestamp", dataArray.get(3));
+            datasetObj.addProperty("end_timestamp", dataArray.get(4));
+            datasetObj.addProperty("location", dataArray.get(5));
+        }catch(JsonIOException e){
+            e.printStackTrace();
+        }
+
+        return datasetObj;
+    }
+
 }

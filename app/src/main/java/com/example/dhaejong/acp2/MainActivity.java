@@ -79,7 +79,6 @@ public class MainActivity extends ActionBarActivity {
                 }
             };
             postRegisterUserReq.run();
-            //postRequestThread.start();
             SystemPreferences.IS_YOUR_FIRST_PLAY = false;
 
         }else{
@@ -94,8 +93,11 @@ public class MainActivity extends ActionBarActivity {
         // configure calendar query service as saved state
         SharedPref mSharedPreference = new SharedPref(this);
         if(mSharedPreference.getFromSP(SystemPreferences.CHECKBOX)){
-            Intent calIntent = new Intent(this, CalendarService.class);
-            startService(calIntent);
+            //Intent calIntent = new Intent(this, CalendarService.class);
+            //startService(calIntent);
+
+            Intent calObserverIntent = new Intent(this, CalendarUpdatedService.class);
+            startService(calObserverIntent);
         }
 
         // get ids of this device for credential issue
@@ -115,7 +117,7 @@ public class MainActivity extends ActionBarActivity {
         Intent intent = new Intent(this, httpService.class);
         startService(intent);
 
-/*
+
 
         ArrayList<String> list = new ArrayList<>();
         list.add("9");
@@ -128,8 +130,8 @@ public class MainActivity extends ActionBarActivity {
         list.add("Tivoli");
         list.add("2 in advance, 4 from the door, free entry with ESN Card");
         list.add("https://www.facebook.com/events/1662196667386875/");
-        list.add("2016-02-18 22:00:00");
-        list.add("");
+        list.add("1457305203");
+        list.add("1458305203");
 
         boolean result = mTags.mLocalDB.addNewEvent(list);
         if(result){
@@ -139,7 +141,7 @@ public class MainActivity extends ActionBarActivity {
         }else{
             Log.e(TAG, "wrong");
         }
-        */
+
 
     }
 

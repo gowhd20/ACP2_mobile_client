@@ -27,8 +27,11 @@ public class BroadcastListener extends BroadcastReceiver {
             SharedPref mSharedPreference = new SharedPref(context);
             //mSharedPreference.saveInSp("checkbox", true);
             if(mSharedPreference.getFromSP(SystemPreferences.CHECKBOX)){
-                Intent calIntent = new Intent(context, CalendarService.class);
-                context.startService(calIntent);
+                //Intent calIntent = new Intent(context, CalendarService.class);
+                //context.startService(calIntent);
+
+                Intent calObserverIntent = new Intent(context, CalendarUpdatedService.class);
+                context.startService(calObserverIntent);
                 Log.i(TAG, "restarted CalendarService");
             }else{
             }

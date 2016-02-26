@@ -136,6 +136,10 @@
             android:name=".httpService"
             android:enabled="true" />
 
+        <service
+            android:name=".CalendarUpdatedService"
+            android:enabled="true" />
+
     </application>
 
 </manifest>

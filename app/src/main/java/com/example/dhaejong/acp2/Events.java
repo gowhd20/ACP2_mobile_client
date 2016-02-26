@@ -196,7 +196,7 @@ public class Events extends ActionBarActivity {
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         googleMapBtn.setTag(address);
         googleMapBtn.setImageResource(R.drawable.ic_place_black_24dp);
-        googleMapBtn.setBackgroundColor(Color.WHITE);
+        //googleMapBtn.setBackgroundColor(Color.WHITE);
         googleMapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

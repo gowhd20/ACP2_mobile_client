@@ -107,8 +107,12 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             public void onClick(View v) {
 
                 // call connecting calender methods
-                Intent intent = new Intent(context, CalendarService.class);
-                context.startService(intent);
+                //Intent calQueryIntent = new Intent(context, CalendarService.class);
+                //context.startService(calQueryIntent);
+                // service to observe changes in calendar
+                Intent calObserverIntent = new Intent(context, CalendarUpdatedService.class);
+                context.startService(calObserverIntent);
+
                 // save checkbox state
                 mSharedPreference.saveInSp(SystemPreferences.CHECKBOX, true);
 
@@ -162,18 +166,15 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     }
 
     private void initSettingsActivity(){
-        ArrayList<String> tagList;
-        tagList = mTags.mLocalDB.getAllTagNames();  // get all tag names from local db
-        if(!tagList.isEmpty()) {
-            for (int i = 0; i < tagList.size(); i++) {
-                int initBtnId = mTags.initAddTagToInterest(this, tagList.get(i));
-                Log.i(TAG, "tag id: " + Integer.toString(initBtnId));
-                ImageButton newButton = (ImageButton) findViewById(initBtnId);
-                newButton.setOnClickListener(this);
-            }
-        }else{
-            Log.e(TAG, "Local db is empty");
+        // get all tag ids from db
+        ArrayList<String> ids = mTags.initAddTagToInterest(this);
+
+        for (int i=0; i < ids.size(); i++) {
+            Log.i(TAG, "tag id: " + ids.get(i));
+            ImageButton newButton = (ImageButton) findViewById(Integer.valueOf(ids.get(i)));
+            newButton.setOnClickListener(this);
         }
+
 
     }
 
@@ -201,7 +202,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
         mSharedPreference = new SharedPref(this);   // sharedpreference class
         mFacebookMethods = new FacebookMethods(this);
-
 
         floatingBtn();  // call the adding tag button
 
@@ -233,8 +233,11 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                     callDialog();
                 } else {
                     mSharedPreference.saveInSp(SystemPreferences.CHECKBOX, false);
-                    Intent intent = new Intent(context, CalendarService.class);
-                    context.stopService(intent);
+                    // unchecked checkbox, stop the calendar related services
+                    Intent calQueryIntent = new Intent(context, CalendarService.class);
+                    context.stopService(calQueryIntent);
+                    Intent calObserverIntent = new Intent(context, CalendarUpdatedService.class);
+                    context.stopService(calObserverIntent);
                     Log.i(TAG, "User remove connection with calendar");
                 }
 
@@ -246,7 +249,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
         List<String> permissionNeeds = Arrays.asList("basic_info", "user_photos", "email", "user_birthday", "public_profile", "user_friends", "user_posts");
         loginButton.setReadPermissions(permissionNeeds);
-
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -337,7 +339,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             try {
                 // delete item from view
                 TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
-                Log.i(TAG, "Resource exist and also textview " + mTxtView.getId() + " is clicked to delete");
+                Log.i(TAG, "Resource exists and with textview " + mTxtView.getId() + " are clicked to delete");
                 callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
 
                 // delete item from local db

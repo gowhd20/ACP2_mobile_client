@@ -181,6 +181,14 @@ public class LocalDB extends SQLiteOpenHelper{
                 });
     }
 
+    public Integer deleteEventItem (String id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(DATABASE_TABLE_NAME_EVENTS,
+                "id = ? ",
+                new String[] {
+                        id
+                });
+    }
 
 
     public ArrayList<String> getAllTagNames(){
@@ -215,8 +223,8 @@ public class LocalDB extends SQLiteOpenHelper{
         return arrayList;
     }
 
-    public ArrayList<MetaDataForEvents> getMetaDataForEvents(){
-        ArrayList<MetaDataForEvents> arrayList = new ArrayList<>();
+    public ArrayList<Metadata> getMetaDataForEvents(){
+        ArrayList<Metadata> arrayList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery("select * from " + DATABASE_TABLE_NAME_EVENTS + "", null);
@@ -224,7 +232,25 @@ public class LocalDB extends SQLiteOpenHelper{
 
         // find all ids and titles and init by MetaDataForEvents class
         while(!res.isAfterLast()){
-            arrayList.add(new MetaDataForEvents(res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_ID)), res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_TITLE))));
+            arrayList.add(new Metadata(res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_ID)), res.getString(res.getColumnIndex(COLUMN_NAME_EVENT_TITLE))));
+            res.moveToNext();
+        }
+        res.moveToFirst();
+        res.close();
+        db.close();
+        return arrayList;
+    }
+
+    public ArrayList<Metadata> getMetaDataForTags(){
+        ArrayList<Metadata> arrayList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery("select * from " + DATABASE_TABLE_NAME_TAGS + "", null);
+        res.moveToFirst();
+
+        // find all ids and titles and init by MetaDataForEvents class
+        while(!res.isAfterLast()){
+            arrayList.add(new Metadata(res.getString(res.getColumnIndex(COLUMN_NAME_TAG_ID)), res.getString(res.getColumnIndex(COLUMN_NAME_TAG_NAME))));
             res.moveToNext();
         }
         res.moveToFirst();
@@ -267,5 +293,19 @@ public class LocalDB extends SQLiteOpenHelper{
         }
     }
 
+    public boolean checkNameExistInTags(String name){
+        ArrayList<Metadata> metaArr = getMetaDataForTags();
+
+        if(!metaArr.isEmpty()) {
+            for(Metadata mMeta : metaArr){
+                if(mMeta.title.equals(name)){
+                    return true;
+                }
+            }
+        }else{
+            Log.e(TAG, "Local db is empty");
+        }
+        return false;
+    }
 
 }
