@@ -36,6 +36,7 @@ public class Events extends ActionBarActivity {
 
     Context context = this;
     LocalDB mLocalDB;
+    // TODO: clear history needs to be implemented
 
     private List<String> getData(){
         Bundle metaDataBundle;

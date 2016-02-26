@@ -114,23 +114,23 @@ public class Tags {
     public int getIdOfCategory(String jsonCategories, String categoryToFind){
         JSONArray arrayObj;
         JSONObject obj;
-        String eventId;
 
         try{
             arrayObj = new JSONArray(jsonCategories);
-            obj = arrayObj.getJSONObject(0);
-
-            while(obj.keys().hasNext()){
+            int count = 0;
+            while(arrayObj.length()>0){
+                obj = arrayObj.getJSONObject(count);
                 if(obj.get("category").toString().equals(categoryToFind)){
-                    eventId = obj.get("id").toString();
-                    return Integer.valueOf(eventId);
+                    return Integer.valueOf(obj.get("id").toString());
                 }
-                obj.keys().next();
+                count++;
             }
+
         }catch(JSONException e){
             e.printStackTrace();
         }
         return 0;
+
     }
 
     public boolean isExistingTag(String tagName){

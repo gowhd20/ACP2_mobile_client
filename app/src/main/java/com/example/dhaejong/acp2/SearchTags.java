@@ -43,6 +43,9 @@ public class SearchTags extends ActionBarActivity {
         setSearchBar(mTags.getNumberOfTags());
     }
 
+    @Override
+    public void onBackPressed() {
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -89,6 +92,7 @@ public class SearchTags extends ActionBarActivity {
         image.setImageResource(R.drawable.ic_image_black_24dp);
 
         Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        Button dialogButtonNo = (Button) dialog.findViewById(R.id.dialogButtonNo);
         dialogButton.setTag(tagName);
         dialogButton.setOnClickListener(new View.OnClickListener() {
 
@@ -96,8 +100,21 @@ public class SearchTags extends ActionBarActivity {
             public void onClick(View v) {
                 // params to send back to Settings activity
                 String selectedItem = v.getTag().toString();
+                Log.d(TAG,mTags.mCategory.toString());
                 int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), selectedItem);
-                sendBackTagName(selectedItem, selectedId);
+                if(selectedId != 0){
+                    sendBackTagName(selectedItem, selectedId);
+                }else{
+                    Log.e(TAG, "failed to find id of selected tag");
+                }
+                dialog.dismiss();
+            }
+        });
+
+        dialogButtonNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // no selected
                 dialog.dismiss();
             }
         });

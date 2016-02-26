@@ -6,7 +6,7 @@ package com.example.dhaejong.acp2;
 public class SystemPreferences {
 
     // systemwise valuables
-    public static final String CATEGORY_IN_USE = "bubble";
+    public static final String CATEGORY_IN_USE = "job";
     public static final int CALENDAR_QUERY_INTERVAL = 10000;
     public static final String CURRENT_CITY_OF_USERS = "Oulu"; // TODO: save current city where user is staying, search with pre-defined interval
     public static boolean IS_SETTINGS_ACTIVITY_ACTIVE = false;
@@ -35,7 +35,7 @@ public class SystemPreferences {
     public static final String DATA_NOT_COLLAPSED = "do_not_collapse";
 
     // http request intervals
-    public static final int GET_CATEGORY_REQUEST_INTERVAL = 50000;
+    public static final int GET_CATEGORY_REQUEST_INTERVAL = 10000;
     public static final int POST_USER_REGISTER_REQUEST_INTERVAL = 100000;
 
 

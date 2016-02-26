@@ -64,12 +64,21 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         image.setImageResource(R.drawable.ic_image_black_24dp);
 
         Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+        Button dialogButtonNo = (Button) dialog.findViewById(R.id.dialogButtonNo);
         dialogButton.setTag(tagName);
         dialogButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 removeTagsFromView(buttonId, textViewId);
+                dialog.dismiss();
+            }
+        });
+
+        dialogButtonNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // no selected
                 dialog.dismiss();
             }
         });
@@ -336,7 +345,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
                 // not sure if it would work inside callback
                 // notify server delete of user's category item
-                if(mTags.ifHasCategories()){
+               /* if(mTags.ifHasCategories()){
                     int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
 
                     postUserCategoryDelReq = new Runnable() {
@@ -347,7 +356,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                         }
                     };
                     postUserCategoryDelReq.run();
-                }
+                }*/
 
 
                 Log.i(TAG, "selected item has deleted from local db");
@@ -377,7 +386,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                         Log.i(TAG, "can't find resource for the tag");
                     }
                     // not sure if it would work inside of callback
-                    try{
+                    /*try{
                         postUserCategoryReq = new Runnable() {
                             @Override
                             public void run() {
@@ -389,7 +398,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                     }catch(Exception e){
                         e.printStackTrace();
                         Log.e(TAG, "notifying server of item added failed");
-                    }
+                    }*/
 
                 }
                 break;

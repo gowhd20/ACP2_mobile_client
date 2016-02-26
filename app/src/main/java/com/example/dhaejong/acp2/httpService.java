@@ -71,19 +71,18 @@ public class httpService extends Service {
     private int getIdOfCategory(String response){
         JSONArray arrayObj;
         JSONObject obj;
-        String eventId;
 
         try{
             arrayObj = new JSONArray(response);
-            obj = arrayObj.getJSONObject(0);
-
-            while(obj.keys().hasNext()){
+            int count = 0;
+            while(arrayObj.length()>0){
+                obj = arrayObj.getJSONObject(count);
                 if(obj.get("category").toString().equals(SystemPreferences.CATEGORY_IN_USE)){
-                    eventId = obj.get("id").toString();
-                    return Integer.valueOf(eventId);
+                    return Integer.valueOf(obj.get("id").toString());
                 }
-                obj.keys().next();
+                count++;
             }
+
         }catch(JSONException e){
             e.printStackTrace();
         }
