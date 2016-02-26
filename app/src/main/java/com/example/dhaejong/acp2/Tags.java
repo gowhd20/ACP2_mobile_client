@@ -19,6 +19,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
@@ -37,10 +39,9 @@ public class Tags {
     private Activity activity;
 
     public int countTagsInList;      // count of tags in the interest list
-    //public String[] tags;
-    public String[] tempAddedTags;
     public LocalDB mLocalDB;
     public JsonArray categoriesJsonArr;
+    public CategoryList mCategory;
 
     protected ArrayList<String> tagNames;
 
@@ -49,9 +50,9 @@ public class Tags {
         this.activity = activity;
         this.mLocalDB = new LocalDB(context);
         this.countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
+        this.mCategory = new CategoryList();
         //mLocalDB.emptyTables();           // for test purpose *******************************//
 
-        this.tempAddedTags = new String[]{};
         this.tagNames = new ArrayList<>();
 
         // category list has been queried before
@@ -60,8 +61,8 @@ public class Tags {
             while(categoriesJsonArr.size()>count) {
                 String temp = categoriesJsonArr.get(count).getAsJsonObject().get("category").toString();
                 temp = temp.replace("\"", "");
-                Log.d(TAG, temp);// categoriesJsonArr.get(count).getAsJsonObject().get("category").toString());
-                this.tagNames.add(temp);//categoriesJsonArr.get(count).getAsJsonObject().get("category").toString());
+                Log.d(TAG, temp);
+                this.tagNames.add(temp);
                 count++;
             }
             Log.d(TAG, this.tagNames.toString());
@@ -87,7 +88,6 @@ public class Tags {
     }
 
     public boolean ifHasCategories(){
-        CategoryList mCategory = new CategoryList();
         String categories = mCategory.getCategories();
         Gson mGson = new Gson();
         try {
@@ -97,14 +97,40 @@ public class Tags {
             Log.d(TAG, categoriesJsonArr.toString());
             return true;
         }catch(Exception e){
-            e.printStackTrace();
             Log.e(TAG, "category is yet empty");
         }
         return false;
     }
 
     public int getNumberOfTags(){
-        return this.categoriesJsonArr.size(); //tags.length;
+        try{
+            return this.categoriesJsonArr.size();
+        }catch(Exception e){
+            Log.i(TAG, "no internet network is available");
+            return 0;
+        }
+    }
+
+    public int getIdOfCategory(String jsonCategories, String categoryToFind){
+        JSONArray arrayObj;
+        JSONObject obj;
+        String eventId;
+
+        try{
+            arrayObj = new JSONArray(jsonCategories);
+            obj = arrayObj.getJSONObject(0);
+
+            while(obj.keys().hasNext()){
+                if(obj.get("category").toString().equals(categoryToFind)){
+                    eventId = obj.get("id").toString();
+                    return Integer.valueOf(eventId);
+                }
+                obj.keys().next();
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public boolean isExistingTag(String tagName){

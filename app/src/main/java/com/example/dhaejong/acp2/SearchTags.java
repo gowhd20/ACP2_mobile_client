@@ -28,21 +28,17 @@ import com.quinny898.library.persistentsearch.SearchBox.SearchListener;
 public class SearchTags extends ActionBarActivity {
 
     SearchBox search;
-    LocalDB mLocalDB;
+    Tags mTags;
 
     private Context context;
-    private Tags mTags;
     private static final String TAG = "SearchTags";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_tags);
-
-        this.mLocalDB = new LocalDB(this);
-        this.mTags = new Tags(this, SearchTags.this);
+        mTags = new Tags(this, SearchTags.this);
         this.context = this;
-
 
         setSearchBar(mTags.getNumberOfTags());
     }
@@ -98,7 +94,10 @@ public class SearchTags extends ActionBarActivity {
 
             @Override
             public void onClick(View v) {
-                sendBackTagName(v.getTag().toString());
+                // params to send back to Settings activity
+                String selectedItem = v.getTag().toString();
+                int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), selectedItem);
+                sendBackTagName(selectedItem, selectedId);
                 dialog.dismiss();
             }
         });
@@ -110,10 +109,16 @@ public class SearchTags extends ActionBarActivity {
 
         this.search = (SearchBox) findViewById(R.id.searchbox);
         search.enableVoiceRecognition(this);
-
-        // set list of preview items
-        for(int i=0; i<countTags; i++){
-            SearchResult option = new SearchResult(mTags.tagNames.get(i),          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
+        // if network is available to fetch the category list
+        if(!mTags.tagNames.isEmpty()) {
+            // set list of preview items
+            for (int i = 0; i < countTags; i++) {
+                SearchResult option = new SearchResult(mTags.tagNames.get(i),          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
+                        ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
+                search.addSearchable(option);
+            }
+        }else{
+            SearchResult option = new SearchResult(null,          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
                     ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
             search.addSearchable(option);
         }
@@ -182,9 +187,10 @@ public class SearchTags extends ActionBarActivity {
 
     }
 
-    protected void sendBackTagName(String tagName){
+    protected void sendBackTagName(String tagName, int tagId){
         Bundle tag = new Bundle();
         tag.putString("tag_name", tagName);
+        tag.putInt("tag_id", tagId);
         Intent intent = new Intent();
         intent.putExtras(tag);
 

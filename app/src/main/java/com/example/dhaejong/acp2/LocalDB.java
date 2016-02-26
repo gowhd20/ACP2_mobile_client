@@ -7,10 +7,13 @@ import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.format.DateFormat;
 import android.util.Log;
 
 import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,9 +48,9 @@ public class LocalDB extends SQLiteOpenHelper{
             "("+COLUMN_NAME_TAG_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
 
     private static final String CREATE_TABLE_EVENT_PLAYER = "create table if not exists "+DATABASE_TABLE_NAME_EVENTS+" " +
-            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES+" text not null, " +
+            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES+" text, " +
             COLUMN_NAME_EVENT_DESCRIPTION+" longtext not null, "+COLUMN_NAME_EVENT_ADDRESS+" text not null, "+COLUMN_NAME_EVENT_PRICE+" text, "+
-            COLUMN_NAME_EVENT_IMAGE_URL+ " text, "+COLUMN_NAME_EVENT_START_TIME+" datetime not null, "+COLUMN_NAME_EVENT_END_TIME+" datetime)";
+            COLUMN_NAME_EVENT_IMAGE_URL+ " text, "+COLUMN_NAME_EVENT_START_TIME+" integer not null, "+COLUMN_NAME_EVENT_END_TIME+" datetime)";
 
     private Context m_context;
     public SQLiteDatabase m_db;
@@ -74,6 +77,7 @@ public class LocalDB extends SQLiteOpenHelper{
 
     public boolean addNewEvent(ArrayList<String> dataArray) {
         // event info
+        // better using bundle instead arraylist i think!
 
         try {
             SQLiteDatabase db = this.getWritableDatabase();
@@ -86,7 +90,7 @@ public class LocalDB extends SQLiteOpenHelper{
             contentValues.put(COLUMN_NAME_EVENT_PRICE, dataArray.get(5));
             contentValues.put(COLUMN_NAME_EVENT_IMAGE_URL, dataArray.get(6));
             contentValues.put(COLUMN_NAME_EVENT_START_TIME, dataArray.get(7));
-            contentValues.put("end_time", dataArray.get(8));
+            contentValues.put(COLUMN_NAME_EVENT_END_TIME, dataArray.get(8));
 
             db.insert(DATABASE_TABLE_NAME_EVENTS, null, contentValues);
             db.close();
@@ -239,6 +243,29 @@ public class LocalDB extends SQLiteOpenHelper{
         }
     }
 
+    public String timestampToDatetime(long timestamp){
+        return DateFormat.format("dd/MM/yyyy hh:mm:ssaa", timestamp * 1000L).toString();
+    }
+
+    public boolean checkDuplicated(String id, String tableName){
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            Cursor res = db.rawQuery("select * from " + tableName + " where id =" + id + "", null);
+            res.moveToFirst();
+            if(res.getCount() != 0){
+                res.close();
+                db.close();
+                return true;
+            }else{
+                res.close();
+                db.close();
+                return false;
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            return true;
+        }
+    }
 
 
 }

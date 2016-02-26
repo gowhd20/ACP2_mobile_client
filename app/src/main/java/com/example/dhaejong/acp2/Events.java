@@ -85,7 +85,7 @@ public class Events extends ActionBarActivity {
 
     }
 
-    private LinearLayout addEndTime(String endTime){
+    private LinearLayout addEndTime(Long endTime){
         int layoutId = getResources().getIdentifier("end_time", "id", getPackageName());
 
         LinearLayout dateLayout = new LinearLayout(this);
@@ -98,14 +98,14 @@ public class Events extends ActionBarActivity {
         dateLayout.setLayoutParams(dateParams);
         dateLayout.setId(layoutId);
         dateLayout.addView(dateText);
-        dateText.setText("End: \n" + endTime);
+        dateText.setText("End: \n" + mLocalDB.timestampToDatetime(endTime));
         dateText.setTextSize(15);
         dateText.setTypeface(Typeface.DEFAULT_BOLD);
 
         return dateLayout;
     }
 
-    private LinearLayout addStartTime(String startTime){
+    private LinearLayout addStartTime(Long startTime){
         int layoutId = getResources().getIdentifier("start_time", "id", getPackageName());
 
         LinearLayout dateLayout = new LinearLayout(this);
@@ -118,7 +118,7 @@ public class Events extends ActionBarActivity {
         dateLayout.setLayoutParams(dateParams);
         dateLayout.setId(layoutId);
         dateLayout.addView(dateText);
-        dateText.setText("Start: \n" + startTime);
+        dateText.setText("Start: \n" + mLocalDB.timestampToDatetime(startTime));
         dateText.setTextSize(15);
         dateText.setTypeface(Typeface.DEFAULT_BOLD);
 
@@ -267,11 +267,11 @@ public class Events extends ActionBarActivity {
         }
         // start time
         if(!selectedAllInfo.get(1).isEmpty()){
-            mainLayout.addView(addStartTime(selectedAllInfo.get(1)));
+            mainLayout.addView(addStartTime(Long.valueOf(selectedAllInfo.get(1))));
         }
         // end time
         if(!selectedAllInfo.get(0).isEmpty()){
-            mainLayout.addView(addEndTime(selectedAllInfo.get(0)));
+            mainLayout.addView(addEndTime(Long.valueOf(selectedAllInfo.get(0))));
         }
         // location map
         if(!selectedAllInfo.get(4).isEmpty()){

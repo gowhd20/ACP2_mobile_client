@@ -31,7 +31,7 @@ public class MainActivity extends ActionBarActivity {
     private static final String TAG = "MainActivity";
 
     Context context = this;
-    Thread postRequestThread;
+    Runnable postRegisterUserReq;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
         EnableGcm mGcm = new EnableGcm(context, MainActivity.this);
         mGcm.initGcm();                                               // set all services of gcm
 
-        mTags.mLocalDB.dropDB();
+        //mTags.mLocalDB.dropDB();    // drop db everytime running *********** test purpose ****************
         // if user uses this app first time
         // open mainActivity and register user to the server
         int tagCount = mTags.countTagsInList;
@@ -63,14 +63,23 @@ public class MainActivity extends ActionBarActivity {
             // or first time user
             // user must register their info to the server
             // possibly register here without facebook id and token
-            postRequestThread = new Thread(new Runnable() {
+           /* postRequestThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     httpNetwork mHttpNet = new httpNetwork(context);
                     mHttpNet.registerUserRequest();
                 }
-            });
-            postRequestThread.start();
+            });*/
+
+            postRegisterUserReq = new Runnable() {
+                @Override
+                public void run() {
+                    httpNetwork mHttpNet = new httpNetwork(context);
+                    mHttpNet.registerUserRequest();
+                }
+            };
+            postRegisterUserReq.run();
+            //postRequestThread.start();
             SystemPreferences.IS_YOUR_FIRST_PLAY = false;
 
         }else{

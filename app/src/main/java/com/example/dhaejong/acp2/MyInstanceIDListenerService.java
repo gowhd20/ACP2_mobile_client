@@ -1,6 +1,7 @@
 package com.example.dhaejong.acp2;
 
 import android.content.Intent;
+import android.widget.Toast;
 
 import com.google.android.gms.iid.InstanceID;
 import com.google.android.gms.iid.InstanceIDListenerService;
@@ -32,6 +33,7 @@ public class MyInstanceIDListenerService extends InstanceIDListenerService {
     // [START refresh_token]
     @Override
     public void onTokenRefresh() {
+        Toast.makeText(this, "google_token has been refreshed", Toast.LENGTH_SHORT).show();
         // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
         Intent intent = new Intent(this, RegistrationIntentService.class);
         startService(intent);

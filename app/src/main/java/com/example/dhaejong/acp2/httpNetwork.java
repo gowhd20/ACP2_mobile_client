@@ -23,6 +23,8 @@ public class httpNetwork {
 
     Context context;
     OkHttpClient client;
+    SharedPref mSharedPref;
+    JsonMethods mJsonMethods;
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "httpNetwork";
 
@@ -30,6 +32,9 @@ public class httpNetwork {
     httpNetwork(Context context){
         this.context = context;
         this.client = new OkHttpClient();
+
+        mSharedPref = new SharedPref(context);
+        mJsonMethods = new JsonMethods();
     }
 
     public String getRequest(String url) throws IOException{
@@ -79,9 +84,53 @@ public class httpNetwork {
         });
     }
 
+    public void deleteUserCategoryReq(int id){
+
+        HttpCallback cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                Log.d(TAG, response.toString()+" -> delete user category response");
+            }
+        };
+        try {
+            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(mSharedPref.getDataForUserRegistration());
+            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, categoryObj, cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "failed");
+        }
+    }
+
+
+    public void registerUserCategoryReq(int id){
+        HttpCallback cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                Log.d(TAG, response.toString()+" -> register user category response");
+            }
+        };
+        try {
+            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(mSharedPref.getDataForUserRegistration());
+            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, categoryObj, cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "failed");
+        }
+    }
+
     public void registerUserRequest(){
-        SharedPref mSharedPref = new SharedPref(context);
-        JsonMethods mJsonMethods = new JsonMethods();
         HttpCallback cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -95,8 +144,8 @@ public class httpNetwork {
             }
         };
         try {
-            JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
-            postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
+            //JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
+            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
 
         }catch(Exception e){
             e.printStackTrace();
@@ -105,8 +154,6 @@ public class httpNetwork {
     }
 
     public void registerMacAddrRequest(){
-        SharedPref mSharedPref = new SharedPref(context);
-        JsonMethods mJsonMethods = new JsonMethods();
         HttpCallback cb = new HttpCallback() {
             @Override
             public void onFailure(Call call, IOException e) {

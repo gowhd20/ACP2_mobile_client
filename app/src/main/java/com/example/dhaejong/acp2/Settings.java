@@ -46,7 +46,9 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     SharedPref mSharedPreference;
     CallbackManager callbackManager;
     FacebookMethods mFacebookMethods;
-    Thread postRequestThread;
+    Runnable postRegisterUserReq;
+    Runnable postUserCategoryReq;
+    Runnable postUserCategoryDelReq;
 
     private void callDialog(String tagName, final int buttonId, final int textViewId){
 
@@ -118,7 +120,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 }else{
                     Log.i(TAG, "checkbox doesn't exist");
                 }
-
                 dialog.dismiss();
 
             }
@@ -135,10 +136,14 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             public void onClick(View view) {
                 /*Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();*/
-                Intent intent = new Intent(context, SearchTags.class);
-                startActivityForResult(intent, GET_TAG_NAME);
+                if(mTags.tagNames.isEmpty()){
+                    Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
+                }else {
+                    Intent intent = new Intent(context, SearchTags.class);
+                    startActivityForResult(intent, GET_TAG_NAME);
 
-                Log.i(TAG, "action button clicked");
+                    Log.i(TAG, "action button clicked");
+                }
             }
         });
     }
@@ -244,14 +249,14 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 Log.d(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
 
                 // register user info to the server
-                postRequestThread = new Thread(new Runnable() {
+                postRegisterUserReq = new Runnable() {
                     @Override
                     public void run() {
                         httpNetwork mHttpNet = new httpNetwork(context);
                         mHttpNet.registerUserRequest();
                     }
-                });
-                postRequestThread.start();
+                };
+                postRegisterUserReq.run();
 
             }
 
@@ -328,6 +333,23 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
                 // delete item from local db
                 mTags.mLocalDB.deleteTag(selectedResId);
+
+                // not sure if it would work inside callback
+                // notify server delete of user's category item
+                if(mTags.ifHasCategories()){
+                    int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
+
+                    postUserCategoryDelReq = new Runnable() {
+                        @Override
+                        public void run() {
+                            httpNetwork mHttpNet = new httpNetwork(context);
+                            mHttpNet.registerUserRequest();
+                        }
+                    };
+                    postUserCategoryDelReq.run();
+                }
+
+
                 Log.i(TAG, "selected item has deleted from local db");
 
             }catch(Exception e){
@@ -353,6 +375,20 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                         newButton.setOnClickListener(this);
                     }catch(Exception e){
                         Log.i(TAG, "can't find resource for the tag");
+                    }
+                    // not sure if it would work inside of callback
+                    try{
+                        postUserCategoryReq = new Runnable() {
+                            @Override
+                            public void run() {
+                                httpNetwork mHttpNet = new httpNetwork(context);
+                                mHttpNet.registerUserRequest();
+                            }
+                        };
+                        postUserCategoryReq.run();
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        Log.e(TAG, "notifying server of item added failed");
                     }
 
                 }

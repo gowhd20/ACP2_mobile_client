@@ -32,6 +32,8 @@ public class SystemPreferences {
     public static final String POST_REGISTER_USER_URL = "https://acp.velho.xyz/client/adduser";
     public static final String POST_USER_MAC_ADDRESS = "https://acp.velho.xyz/client/user/addmac";
 
+    public static final String DATA_NOT_COLLAPSED = "do_not_collapse";
+
     // http request intervals
     public static final int GET_CATEGORY_REQUEST_INTERVAL = 50000;
     public static final int POST_USER_REGISTER_REQUEST_INTERVAL = 100000;

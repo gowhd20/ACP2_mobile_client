@@ -58,6 +58,19 @@ public class JsonMethods {
         return userInfoObj;
     }
 
+    public JsonObject getUserCategoryJson(ArrayList<String> dataArray) {
+        JsonObject userCategoryJson = new JsonObject();
+        try {
+            userCategoryJson.addProperty("user_id", dataArray.get(0));
+            userCategoryJson.addProperty("category_id", dataArray.get(1));
+
+        }catch(JsonIOException e){
+            e.printStackTrace();
+        }
+
+        return userCategoryJson;
+    }
+
     public JsonObject getUserMacAddrInfoJson(ArrayList<String> dataArray) {
         JsonObject macAddr = new JsonObject();
         try {
