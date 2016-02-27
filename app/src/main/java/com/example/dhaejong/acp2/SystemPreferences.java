@@ -12,6 +12,7 @@ public class SystemPreferences {
     public static boolean IS_SETTINGS_ACTIVITY_ACTIVE = false;
     public static final int TEXTVIEW_IDENTIFIER = 111111;
     public static final String GCM_ID = "624829381259";             // not sure if it needs to be dynamic?
+    public static final String GCM_TOKEN = "gcm_token";
     public static boolean IS_YOUR_FIRST_PLAY = true;
 
     // sharedpreference

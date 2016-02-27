@@ -2,12 +2,15 @@ package com.example.dhaejong.acp2;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.os.ResultReceiver;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
@@ -33,6 +36,7 @@ import java.util.MissingResourceException;
 public class MyGcmListenerService extends GcmListenerService {
 
     private static final String TAG = "MyGcmListenerService";
+    private static final String REFRESH_ACTION = "android.intent.action.REFRESH_ACTION";
 
     ArrayList<String> eventArr = new ArrayList<>();
     LocalDB mLocalDB;
@@ -143,6 +147,9 @@ public class MyGcmListenerService extends GcmListenerService {
             Log.e(TAG, "data server pushed has collapsed");
         }
 
+        // send refresh action to event listview activity
+        Intent refreshIntent = new Intent(REFRESH_ACTION);
+        sendBroadcast(refreshIntent);
 
         /**
          * In some cases it may be useful to show a notification indicating to the user

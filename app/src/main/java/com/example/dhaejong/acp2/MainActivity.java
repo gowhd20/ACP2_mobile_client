@@ -100,19 +100,26 @@ public class MainActivity extends ActionBarActivity {
             startService(calObserverIntent);
         }
 
-        // get ids of this device for credential issue
-        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wInfo = wifiManager.getConnectionInfo();
-        String macAddress = wInfo.getMacAddress();
-        Log.d(TAG, macAddress);
-        TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-        Log.d("ID", "Android ID: " + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
-        Log.d("ID", "Device ID : " + tm.getDeviceId());
-
         SharedPref mSharedPref = new SharedPref(this);
-        mSharedPref.saveInSp(SystemPreferences.MAC_ADDRESS, macAddress);
-        mSharedPref.saveInSp(SystemPreferences.ANDROID_ID, android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
-        mSharedPref.saveInSp(SystemPreferences.DEVICE_ID, tm.getDeviceId());
+        try {
+            // get ids of this device for credential issue
+            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wInfo = wifiManager.getConnectionInfo();
+            String macAddress = wInfo.getMacAddress();
+            Log.d(TAG, macAddress);
+            mSharedPref.saveInSp(SystemPreferences.MAC_ADDRESS, macAddress);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        try {
+            TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+            Log.d("ID", "Android ID: " + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+            Log.d("ID", "Device ID : " + tm.getDeviceId());
+            mSharedPref.saveInSp(SystemPreferences.ANDROID_ID, android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+            mSharedPref.saveInSp(SystemPreferences.DEVICE_ID, tm.getDeviceId());
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
         Intent intent = new Intent(this, httpService.class);
         startService(intent);

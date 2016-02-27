@@ -58,6 +58,11 @@ public class RegistrationIntentService extends IntentService {
             Log.i(TAG, "GCM Registration Token: " + token);
 
             // TODO: Implement this method to send any registration to your app's servers.
+
+            // update/save gcm token locally
+            SharedPref mSharedPref = new SharedPref(this);
+            mSharedPref.saveInSp(SystemPreferences.GCM_TOKEN, token);
+
             sendRegistrationToServer(token);
 
             // Subscribe to topic channels

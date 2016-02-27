@@ -73,7 +73,7 @@ public class httpNetwork {
     }
 
     public void postRequest(String url, JsonObject json, final HttpCallback cb) throws IOException {
-
+        Log.i(TAG, "what do i post to server? : "+ json.toString());
         requestBody = RequestBody.create(JSON, new Gson().toJson(json));
         request = new Request.Builder()
                 .url(url)
@@ -183,6 +183,7 @@ public class httpNetwork {
             }
         };
         try {
+            // actual http post request happens here
             JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
             postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
 

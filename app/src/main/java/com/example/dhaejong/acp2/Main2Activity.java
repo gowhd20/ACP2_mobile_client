@@ -1,14 +1,17 @@
 package com.example.dhaejong.acp2;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,15 +27,20 @@ public class Main2Activity extends ActionBarActivity {
 
     private String TAG = "Main2Activity";
     private Tags mTags;
+    private static final String REFRESH_ACTION = "android.intent.action.REFRESH_ACTION";
 
-    protected ArrayList<String> ids = new ArrayList<>();
-    protected ArrayList<String> titles = new ArrayList<>();
+    protected ArrayList<String> ids;
+    protected ArrayList<String> titles;
 
     Context context;
+    RefreshBroadcastListener mRefreshBroadcastListener;
+    IntentFilter intentFilter;
 
     private void initListView(){
         // query list of titles and ids from local db
         final ArrayList<String> contentTitleList = mTags.mLocalDB.getAllEventTitles();
+        ids = new ArrayList<>();
+        titles = new ArrayList<>();
 
         ArrayList<Metadata> tempArray;
         tempArray = mTags.mLocalDB.getMetaDataForEvents();
@@ -49,13 +57,10 @@ public class Main2Activity extends ActionBarActivity {
         final StableArrayAdapter adapter = new StableArrayAdapter(this, android.R.layout.simple_list_item_1, contentTitleList);
         listview.setAdapter(adapter);
 
-
-
-
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
-                Log.i(TAG, view.toString());
+                //Log.i(TAG, view.toString());
                 Object obj = parent.getItemAtPosition(position);
                 final String selectedItem = obj.toString();
 
@@ -64,11 +69,18 @@ public class Main2Activity extends ActionBarActivity {
                         try {
                             // remove item from the db
                             mTags.mLocalDB.deleteEventItem(ids.get(i));
+                            // notify user
+                            // Vibrate for 500 milliseconds
+                            Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                            v.vibrate(500);
                             view.animate().setDuration(2000).alpha(0).withEndAction(new Runnable() {
                                 @Override
                                 public void run() {
+                                    Log.d(TAG, selectedItem);
                                     adapter.remove(selectedItem);
                                     adapter.notifyDataSetChanged();
+                                    view.setAlpha(1);
+
                                 }
                             });
                             /*view.animate().setDuration(2000).alpha(0).withEndAction(new Runnable() {
@@ -79,8 +91,6 @@ public class Main2Activity extends ActionBarActivity {
                                             //view.setAlpha(1);
                                         }
                                     }*/
-
-
 
                         }catch(Exception e){
                             e.printStackTrace();
@@ -134,21 +144,22 @@ public class Main2Activity extends ActionBarActivity {
 
                             }
                         });*/
-
             }
 
         });
 
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         mTags = new Tags(Main2Activity.this, this);
-
         this.context = this;
+
+        intentFilter = new IntentFilter(REFRESH_ACTION);
+        mRefreshBroadcastListener = new RefreshBroadcastListener();
+        registerReceiver(mRefreshBroadcastListener, intentFilter);
 
         initListView();
 
@@ -177,6 +188,11 @@ public class Main2Activity extends ActionBarActivity {
             return true;
         }
 
+    }
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        unregisterReceiver(mRefreshBroadcastListener);
     }
 
     @Override
@@ -219,4 +235,37 @@ public class Main2Activity extends ActionBarActivity {
 
         }
     }
+
+    public class RefreshBroadcastListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(REFRESH_ACTION)) {
+
+                PowerManager pm = (PowerManager) context.getSystemService(POWER_SERVICE);
+                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "");
+
+                wl.acquire();
+                //  method 1,
+                //finish();
+                //Intent refIntent = new Intent(context, Main2Activity.class);
+                //refIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                //context.startActivity(refIntent);
+
+                // method 2,
+                //finish();
+                //context.startActivity(refIntent);
+                //overridePendingTransition(0, 0);
+                //context.startActivity(getIntent());
+                //overridePendingTransition(0, 0);
+
+                // this is better
+                initListView();
+                wl.release();
+
+            }
+        }
+
+    }
+
 }

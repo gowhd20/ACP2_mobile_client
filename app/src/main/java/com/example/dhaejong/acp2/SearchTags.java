@@ -30,7 +30,7 @@ public class SearchTags extends ActionBarActivity {
     SearchBox search;
     Tags mTags;
 
-    private Context context;
+    Context context;
     private static final String TAG = "SearchTags";
 
     @Override
@@ -38,7 +38,7 @@ public class SearchTags extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_tags);
         mTags = new Tags(this, SearchTags.this);
-        this.context = this;
+        context = this;
 
         setSearchBar(mTags.getNumberOfTags());
     }

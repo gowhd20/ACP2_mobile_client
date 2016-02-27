@@ -60,9 +60,9 @@ public class httpService extends Service {
         try{
             arrayObj = new JSONArray(response);
             int count = 0;
-            while(arrayObj.length()>0){
+            while(arrayObj.length()>count){
                 obj = arrayObj.getJSONObject(count);
-                if(obj.get("category").toString().equals(SystemPreferences.CATEGORY_IN_USE)){
+                if(obj.get("category").toString().replace("\"", "").equals(SystemPreferences.CATEGORY_IN_USE)){
                     return Integer.valueOf(obj.get("id").toString());
                 }
                 count++;

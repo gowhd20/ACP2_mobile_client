@@ -59,7 +59,7 @@ public class SharedPref {
         registerDataArray.add(preferences.getString(SystemPreferences.EMAIL, ""));
         registerDataArray.add(preferences.getString(SystemPreferences.USER_NAME, ""));
         registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, ""));
-        registerDataArray.add(preferences.getString("gcm_id", SystemPreferences.GCM_ID));
+        registerDataArray.add(preferences.getString(SystemPreferences.GCM_TOKEN, ""));
         return registerDataArray;
     }
 
