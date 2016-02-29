@@ -93,7 +93,10 @@ public class RegistrationIntentService extends IntentService {
      * @param token The new token.
      */
     private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
+        // also when it refreshes
+        HttpRequests mHttpRequests = new HttpRequests(this, token, 6);  // flag 6 -> update gcm token request
+        mHttpRequests.run();
+
     }
 
     /**

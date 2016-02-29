@@ -43,7 +43,7 @@ public class httpService extends Service {
 
             // save id of category in sharedpreference for future post
             SharedPref mSharedPref = new SharedPref(this);
-            mSharedPref.saveInSp(SystemPreferences.CATEGORY_ID_IN_USE, categoryId);
+            mSharedPref.saveInSp(SystemPreferences.CATEGORY_LIST, categoryId);
 
             //Log.d(TAG, response);
         }catch(IOException e){

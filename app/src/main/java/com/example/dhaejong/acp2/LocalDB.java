@@ -90,8 +90,8 @@ public class LocalDB extends SQLiteOpenHelper{
             contentValues.put(COLUMN_NAME_EVENT_ADDRESS, dataArray.get(4));
             contentValues.put(COLUMN_NAME_EVENT_PRICE, dataArray.get(5));
             contentValues.put(COLUMN_NAME_EVENT_IMAGE_URL, dataArray.get(6));
-            contentValues.put(COLUMN_NAME_EVENT_START_TIME, dataArray.get(7));
-            contentValues.put(COLUMN_NAME_EVENT_END_TIME, dataArray.get(8));
+            contentValues.put(COLUMN_NAME_EVENT_START_TIME, Integer.valueOf(dataArray.get(7)));
+            contentValues.put(COLUMN_NAME_EVENT_END_TIME, Integer.valueOf(dataArray.get(8)));
 
             db.insert(DATABASE_TABLE_NAME_EVENTS, null, contentValues);
             db.close();

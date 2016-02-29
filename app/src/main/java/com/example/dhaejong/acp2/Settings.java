@@ -46,9 +46,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     SharedPref mSharedPreference;
     CallbackManager callbackManager;
     FacebookMethods mFacebookMethods;
-    Runnable postRegisterUserReq;
-    Runnable postUserCategoryReq;
-    Runnable postUserCategoryDelReq;
+    HttpRequests mHttpReq;
 
     private void callDialog(String tagName, final int buttonId, final int textViewId){
 
@@ -200,8 +198,14 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         FacebookSdk.sdkInitialize(this.getApplicationContext());    // this should come before setContentView
         setContentView(R.layout.activity_settings);
         SystemPreferences.IS_SETTINGS_ACTIVITY_ACTIVE = true;
-        mSharedPreference = new SharedPref(this);   // sharedpreference class
+        mSharedPreference = new SharedPref(this);                   // sharedpreference class
         mFacebookMethods = new FacebookMethods(this);
+
+        if(!mSharedPreference.getFromSP(SystemPreferences.MAC_ADDR_REGISTERED) && !Integer.toString(mSharedPreference.getIntFromSP("user_id")).equals("")) {
+            mSharedPreference.saveInSp(SystemPreferences.MAC_ADDR_REGISTERED, true);
+            mHttpReq = new HttpRequests(this, 0, 3); // flag 3 -> register mac address
+            mHttpReq.run();
+        }
 
         floatingBtn();  // call the adding tag button
 
@@ -251,6 +255,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         loginButton.setReadPermissions(permissionNeeds);
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            // TODO: need to do something if user disconnect facebook
             @Override
             public void onSuccess(LoginResult loginResult) {
                 access_token = loginResult.getAccessToken();
@@ -258,16 +263,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 mSharedPref.saveInSp(SystemPreferences.FACEBOOK_TOKEN, access_token.getToken());    //  save/update facebook token
                 mFacebookMethods.queryFbData();             // query facebook data that will be stored in shared preference
                 Log.d(TAG, "Content User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + access_token.getToken());
-
-                // register user info to the server
-                postRegisterUserReq = new Runnable() {
-                    @Override
-                    public void run() {
-                        httpNetwork mHttpNet = new httpNetwork(context);
-                        mHttpNet.registerUserRequest();
-                    }
-                };
-                postRegisterUserReq.run();
 
             }
 
@@ -334,38 +329,33 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         Log.i(TAG, Integer.toString(view.getId()));
         int checkExistence = this.getResources().getIdentifier(Integer.toString(selectedResId), "id", this.getPackageName());
 
-        // resource exists
-        if(checkExistence != 0){
-            try {
-                // delete item from view
-                TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
-                Log.i(TAG, "Resource exists and with textview " + mTxtView.getId() + " are clicked to delete");
-                callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
+        // TODO: this is temporal method to prevent user from removing tags without internet connection however
+        // TODO: this will need fundamental solution ex) remove only response from server is true
+        if(mTags.ifHasCategories()) {
+            if (checkExistence != 0) {  // resource exists
+                try {
+                    // delete item from view
+                    TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
+                    Log.i(TAG, "Resource exists and with textview " + mTxtView.getId() + " are clicked to delete");
+                    callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
 
-                // delete item from local db
-                mTags.mLocalDB.deleteTag(selectedResId);
+                    // delete item from local db
+                    mTags.mLocalDB.deleteTag(selectedResId);
 
-                // not sure if it would work inside callback
-                // notify server delete of user's category item
-               /* if(mTags.ifHasCategories()){
+                    // notify server delete of user's category item
+
                     int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
+                    mHttpReq = new HttpRequests(this, selectedId, 2); // flag 2 -> deleted tag request
+                    mHttpReq.run();
 
-                    postUserCategoryDelReq = new Runnable() {
-                        @Override
-                        public void run() {
-                            httpNetwork mHttpNet = new httpNetwork(context);
-                            mHttpNet.registerUserRequest();
-                        }
-                    };
-                    postUserCategoryDelReq.run();
-                }*/
+                    Log.i(TAG, "selected item has deleted from local db");
 
-
-                Log.i(TAG, "selected item has deleted from local db");
-
-            }catch(Exception e){
-                Log.i(TAG, "something went wrong with getting resource");
+                } catch (Exception e) {
+                    Log.i(TAG, "something went wrong with getting resource");
+                }
             }
+        }else{
+            Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -379,34 +369,28 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             case GET_TAG_NAME:
                 // item from search list selected
                 if (resultCode == RESULT_OK) {
+                    int newButtonId=0;
+                    // TODO: if server fails to add user's tag, should remove from the view
                     try {
-                        int newButtonId = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
+                        newButtonId = mTags.addTagToInterest(this, data.getExtras().getString("tag_name"));
                         Log.i(TAG, "tag id: " + Integer.toString(newButtonId));
                         ImageButton newButton = (ImageButton) findViewById(newButtonId);
                         newButton.setOnClickListener(this);
-                    }catch(Exception e){
+                    }catch(Exception e) {
                         Log.i(TAG, "can't find resource for the tag");
                     }
-                    // not sure if it would work inside of callback
-                    /*try{
-                        postUserCategoryReq = new Runnable() {
-                            @Override
-                            public void run() {
-                                httpNetwork mHttpNet = new httpNetwork(context);
-                                mHttpNet.registerUserRequest();
-                            }
-                        };
-                        postUserCategoryReq.run();
-                    }catch(Exception e){
-                        e.printStackTrace();
-                        Log.e(TAG, "notifying server of item added failed");
-                    }*/
+
+                    if(newButtonId != 0) {
+                        mHttpReq = new HttpRequests(this, mTags.getIdOfCategory(mTags.mCategory.getCategories(),
+                                data.getExtras().getString("tag_name")), 1);        // flag 1 -> tag added request
+                        mHttpReq.run();
+                    }else{
+                        Log.e(TAG, "failed to get the id of new added button");
+                    }
 
                 }
                 break;
         }
     }
-
-
 
 }

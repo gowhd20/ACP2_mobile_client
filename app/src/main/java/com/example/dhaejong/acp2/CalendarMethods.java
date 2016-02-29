@@ -8,7 +8,13 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.MissingResourceException;
@@ -42,7 +48,7 @@ public class CalendarMethods {
         this.context = context;
     }
 
-    public JsonArray queryEvents(Context context) {
+    public String queryEvents(Context context) {
 
         ArrayList<String> calendarArr = new ArrayList<>();
         java.util.Calendar beginTime = java.util.Calendar.getInstance();
@@ -90,13 +96,13 @@ public class CalendarMethods {
                 calendarArr.add("");
             }
             try{
-                calendarArr.add(String.valueOf(cur.getLong(PROJECTION_BEGIN_INDEX)));
+                calendarArr.add(String.valueOf(cur.getLong(PROJECTION_BEGIN_INDEX)).substring(0, 10));
             } catch(MissingResourceException e) {
                 e.printStackTrace();
                 calendarArr.add("");
             }
             try{
-                calendarArr.add(String.valueOf(cur.getLong(PROJECTION_END_INDEX)));
+                calendarArr.add(String.valueOf(cur.getLong(PROJECTION_END_INDEX)).substring(0, 10));
             } catch(MissingResourceException e) {
                 e.printStackTrace();
                 calendarArr.add("");
@@ -111,9 +117,16 @@ public class CalendarMethods {
             calendarArr.clear();
 
         }
-        Log.d(TAG, calJsonArr.toString());
+        JsonObject calJsonObj = new JsonObject();
+        SharedPref mSharedPref = new SharedPref(context);
+
+        calJsonObj.addProperty("id", mSharedPref.getIntFromSP(SystemPreferences.USER_ID));
+        calJsonObj.addProperty("events", calJsonArr.toString());
+        String temp = calJsonObj.toString().replaceAll("\\\\", "");
+        Log.d(TAG, temp);
+
         cur.close();
-        return calJsonArr;
+        return temp;
     }
 
     // checking length of the detected event and return if it's current or not

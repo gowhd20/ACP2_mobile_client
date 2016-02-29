@@ -49,7 +49,7 @@ public class SharedPref {
 
     public int getIntFromSP(String key){
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("General", android.content.Context.MODE_PRIVATE);
-        return Integer.valueOf(preferences.getString(key, ""));
+        return preferences.getInt(key, 0);  // default 0
     }
 
     public ArrayList<String> getDataForUserRegistration() throws Exception{
@@ -61,6 +61,18 @@ public class SharedPref {
         registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, ""));
         registerDataArray.add(preferences.getString(SystemPreferences.GCM_TOKEN, ""));
         return registerDataArray;
+    }
+
+    public ArrayList<String> getDataForUserInfoUpdate() throws Exception{
+        ArrayList<String> updateDataArr = new ArrayList<>();
+        SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("General", android.content.Context.MODE_PRIVATE);
+        int userId = preferences.getInt(SystemPreferences.USER_ID, 0);
+        updateDataArr.add(String.valueOf(userId));
+        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_ID, ""));
+        updateDataArr.add(preferences.getString(SystemPreferences.EMAIL, ""));
+        updateDataArr.add(preferences.getString(SystemPreferences.USER_NAME, ""));
+        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, ""));
+        return updateDataArr;
     }
 
 }

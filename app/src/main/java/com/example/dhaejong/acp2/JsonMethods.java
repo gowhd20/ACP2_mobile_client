@@ -21,14 +21,11 @@ public class JsonMethods {
     JsonObject datasetObj;
     JsonMethods(){}
 
-    public JsonObject getUserInfoJson(ArrayList<String> dataArray) {
+    public JsonObject getGCMRefreshJson(int id, String token) {
         datasetObj = new JsonObject();
         try {
-            datasetObj.addProperty("facebook_id", dataArray.get(0));
-            datasetObj.addProperty("email_address", dataArray.get(1));
-            datasetObj.addProperty("full_name", dataArray.get(2));
-            datasetObj.addProperty("short_token", dataArray.get(3));
-            datasetObj.addProperty("google_id", dataArray.get(4));
+            datasetObj.addProperty(SystemPreferences.USER_ID, id);
+            datasetObj.addProperty(SystemPreferences.GCM_TOKEN, token);
         }catch(JsonIOException e){
             e.printStackTrace();
         }
@@ -36,11 +33,41 @@ public class JsonMethods {
         return datasetObj;
     }
 
-    public JsonObject getUserCategoryJson(String userId, String categoryId) {
+    public JsonObject getUserInfoJson(ArrayList<String> dataArray){
         datasetObj = new JsonObject();
         try {
-            datasetObj.addProperty("user_id", userId);
-            datasetObj.addProperty("category_id", categoryId);
+            datasetObj.addProperty(SystemPreferences.FACEBOOK_ID, dataArray.get(0));
+            datasetObj.addProperty(SystemPreferences.EMAIL, dataArray.get(1));
+            datasetObj.addProperty(SystemPreferences.USER_NAME, dataArray.get(2));
+            datasetObj.addProperty(SystemPreferences.FACEBOOK_TOKEN, dataArray.get(3));
+            datasetObj.addProperty(SystemPreferences.GCM_TOKEN, dataArray.get(4));
+        }catch(JsonIOException e){
+            e.printStackTrace();
+        }
+
+        return datasetObj;
+    }
+
+    public JsonObject getUserInfoJsonToUpdate(ArrayList<String> dataArray){
+        datasetObj = new JsonObject();
+        try {
+            datasetObj.addProperty(SystemPreferences.USER_ID, Integer.valueOf(dataArray.get(0)));
+            datasetObj.addProperty(SystemPreferences.FACEBOOK_ID, dataArray.get(1));
+            datasetObj.addProperty(SystemPreferences.EMAIL, dataArray.get(2));
+            datasetObj.addProperty(SystemPreferences.USER_NAME, dataArray.get(3));
+            datasetObj.addProperty(SystemPreferences.FACEBOOK_TOKEN, dataArray.get(4));
+        }catch(JsonIOException e){
+            e.printStackTrace();
+        }
+
+        return datasetObj;
+    }
+
+    public JsonObject getUserCategoryJson(int userId, int categoryId){
+        datasetObj = new JsonObject();
+        try {
+            datasetObj.addProperty(SystemPreferences.USER_ID, userId);
+            datasetObj.addProperty(SystemPreferences.CATEGORY_ID, categoryId);
 
         }catch(JsonIOException e){
             e.printStackTrace();
@@ -49,11 +76,11 @@ public class JsonMethods {
         return datasetObj;
     }
 
-    public JsonObject getUserMacAddrInfoJson(String userId, String mac) {
+    public JsonObject getUserMacAddrInfoJson(int userId, String mac) {
         datasetObj = new JsonObject();
         try {
-            datasetObj.addProperty("user_id", userId);
-            datasetObj.addProperty("mac_address", mac);
+            datasetObj.addProperty(SystemPreferences.USER_ID, userId);
+            datasetObj.addProperty(SystemPreferences.MAC_ADDRESS, mac);
         }catch(JsonIOException e){
             e.printStackTrace();
         }
@@ -61,15 +88,15 @@ public class JsonMethods {
         return datasetObj;
     }
 
-    public JsonObject getCalendarInfoJson(ArrayList<String> dataArray) {
+    public JsonObject getCalendarInfoJson(ArrayList<String> dataArray){
         datasetObj = new JsonObject();
         try {
-            datasetObj.addProperty("event_id", dataArray.get(0));
-            datasetObj.addProperty("title", dataArray.get(1));
-            datasetObj.addProperty("description", dataArray.get(2));
-            datasetObj.addProperty("start_timestamp", dataArray.get(3));
-            datasetObj.addProperty("end_timestamp", dataArray.get(4));
-            datasetObj.addProperty("location", dataArray.get(5));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_ID, dataArray.get(0));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_TITLE, dataArray.get(1));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_DESCRIPTION, dataArray.get(2));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_START_TIME, Integer.valueOf(dataArray.get(3)));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_END_TIME, Integer.valueOf(dataArray.get(4)));
+            datasetObj.addProperty(SystemPreferences.CALENDAR_EVENT_LOCATION, dataArray.get(5));
         }catch(JsonIOException e){
             e.printStackTrace();
         }

@@ -8,10 +8,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -36,6 +36,9 @@ public class httpNetwork {
     Response response;
     RequestBody requestBody;
     HttpCallback cb;
+    JsonObject jsonObj;
+    public static Boolean REQ_ITEM_ADD_SUCCEED = false;
+    public static Boolean REQ_ITEM_DELETE_SUCCEED = false;
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "httpNetwork";
@@ -72,7 +75,7 @@ public class httpNetwork {
         return request.newBuilder().header("Authorization", credential).build();
     }
 
-    public void postRequest(String url, JsonObject json, final HttpCallback cb) throws IOException {
+    public void postRequest(String url, Object json, final HttpCallback cb) throws IOException {
         Log.i(TAG, "what do i post to server? : "+ json.toString());
         requestBody = RequestBody.create(JSON, new Gson().toJson(json));
         request = new Request.Builder()
@@ -92,10 +95,54 @@ public class httpNetwork {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 cb.onSuccess(response);
+
             }
         });
     }
 
+    public void updateGCMReq(String token){
+        cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                Log.d(TAG, response.toString()+" -> update gcm token response");
+            }
+        };
+
+        try {
+            jsonObj = mJsonMethods.getGCMRefreshJson(mSharedPref.getIntFromSP(SystemPreferences.USER_ID), token);
+            postRequest(SystemPreferences.UPDATE_GCM_TOKEN, jsonObj, cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "calendar update failed");
+        }
+    }
+
+    public void updateCalendarReq(String calEvents){
+        cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                Log.d(TAG, response.toString()+" -> update calendar event response");
+            }
+        };
+        try {
+            postRequest(SystemPreferences.POST_REGISTER_USER_URL, calEvents, cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "calendar update failed");
+        }
+    }
 
     public void deleteUserCategoryReq(int id){
 
@@ -112,40 +159,14 @@ public class httpNetwork {
             }
         };
         try {
-            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(SystemPreferences.USER_ID, id);
-            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, categoryObj, cb);
+            jsonObj = mJsonMethods.getUserCategoryJson(mSharedPref.getIntFromSP(SystemPreferences.USER_ID), id);
+            postRequest(SystemPreferences.POST_TAG_DELETED, jsonObj, cb);
 
         }catch(Exception e){
             e.printStackTrace();
             Log.e(TAG, "delete user failed");
         }
     }
-
-    public void updateCalendarReq(JsonArray calEvents){
-        cb = new HttpCallback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                // TODO:
-            }
-
-            @Override
-            public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> update calendar event response");
-            }
-        };
-        JsonElement test = calEvents.get(0);
-        JsonObject tes2 = test.getAsJsonObject();
-
-        Log.d(TAG, tes2.toString());
-        try {
-            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, calEvents.getAsJsonObject(), cb);
-
-        }catch(Exception e){
-            e.printStackTrace();
-            Log.e(TAG, "calendar update failed");
-        }
-    }
-
 
     public void registerUserCategoryReq(int id){
         cb = new HttpCallback() {
@@ -156,16 +177,47 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> register user category response");
+                Log.d(TAG, response.body().toString()+" -> register user category response");
+                REQ_ITEM_ADD_SUCCEED = true;
             }
         };
         try {
-            //JsonObject categoryObj = mJsonMethods.getUserCategoryJson(mSharedPref.getDataForUserRegistration());
-            //postRequest(SystemPreferences.POST_REGISTER_USER_URL, categoryObj, cb);
+            jsonObj = mJsonMethods.getUserCategoryJson(mSharedPref.getIntFromSP(SystemPreferences.USER_ID), id);
+            postRequest(SystemPreferences.POST_TAG_ADDED, jsonObj, cb);
 
         }catch(Exception e){
             e.printStackTrace();
             Log.e(TAG, "register user category failed");
+        }
+    }
+
+    public void updateUserInfo(){
+        cb = new HttpCallback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // TODO:
+            }
+
+            @Override
+            public void onSuccess(Response response) {
+                try {
+
+                    Log.d(TAG, response.body().string() + " -> update user response");
+
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+
+            }
+        };
+        try {
+            // actual http post request happens here
+            jsonObj = mJsonMethods.getUserInfoJsonToUpdate(mSharedPref.getDataForUserInfoUpdate());
+            postRequest(SystemPreferences.UPDATE_USER_INFO, jsonObj, cb);
+
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e(TAG, "update user failed");
         }
     }
 
@@ -178,14 +230,27 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> register user response");
-                // TODO: save user id in sharedpref
+            try {
+                try {
+                    String userId = response.body().string();
+                    Log.d(TAG, userId + " -> register user response");
+                    JSONObject idObj = new JSONObject(userId);
+                    Log.i(TAG, idObj.getString("id") + " look at this");
+                    mSharedPref.saveInSp(SystemPreferences.USER_ID, Integer.valueOf(idObj.getString("id")));    // store user id
+                }catch(JSONException e){
+                    e.printStackTrace();
+                }
+
+            }catch(IOException e){
+                e.printStackTrace();
+            }
+
             }
         };
         try {
             // actual http post request happens here
-            JsonObject userInfo = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
-            postRequest(SystemPreferences.POST_REGISTER_USER_URL, userInfo, cb);
+            jsonObj = mJsonMethods.getUserInfoJson(mSharedPref.getDataForUserRegistration());
+            postRequest(SystemPreferences.POST_REGISTER_USER_URL, jsonObj, cb);
 
         }catch(Exception e){
             e.printStackTrace();
@@ -202,13 +267,18 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> register mac_address response");
+                try {
+                    Log.d(TAG, response.body().string() + " -> register mac_address response");
+
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
             }
         };
 
         try {
-            //JsonObject userInfo = mJsonMethods.getUserMacAddrInfoJson(//user_id//, mSharedPref.getFromSP(SystemPreferences.MAC_ADDRESS))
-            //postRequest(SystemPreferences.POST_REGISTER_USER, userInfo, cb);
+            jsonObj = mJsonMethods.getUserMacAddrInfoJson(mSharedPref.getIntFromSP(SystemPreferences.USER_ID), mSharedPref.getStringFromSP(SystemPreferences.MAC_ADDRESS));
+            postRequest(SystemPreferences.POST_USER_MAC_ADDRESS, jsonObj, cb);
 
         }catch(Exception e){
             e.printStackTrace();

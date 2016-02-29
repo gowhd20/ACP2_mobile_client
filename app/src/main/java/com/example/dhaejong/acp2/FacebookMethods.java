@@ -64,7 +64,9 @@ public class FacebookMethods {
         batch.addCallback(new GraphRequestBatch.Callback() {
             @Override
             public void onBatchCompleted(GraphRequestBatch graphRequests) {
-
+                //TODO: need to make smarter user info update!!!!!!!!!!!!!! ex) if any changes in user info
+                HttpRequests mHttpReq = new HttpRequests(context, 0, 5);        // flag 5 -> update user info request
+                mHttpReq.run();
             }
 
         });

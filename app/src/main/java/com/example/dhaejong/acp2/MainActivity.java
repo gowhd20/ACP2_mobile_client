@@ -31,7 +31,6 @@ public class MainActivity extends ActionBarActivity {
     private static final String TAG = "MainActivity";
 
     Context context = this;
-    Runnable postRegisterUserReq;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,27 +58,16 @@ public class MainActivity extends ActionBarActivity {
         // if user uses this app first time
         // open mainActivity and register user to the server
         int tagCount = mTags.countTagsInList;
-        if(SystemPreferences.IS_YOUR_FIRST_PLAY){
+        SharedPref mSharedPref = new SharedPref(this);
+        if(!mSharedPref.getFromSP(SystemPreferences.USER_REGISTERED)){
             // or first time user
             // user must register their info to the server
             // possibly register here without facebook id and token
-           /* postRequestThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    httpNetwork mHttpNet = new httpNetwork(context);
-                    mHttpNet.registerUserRequest();
-                }
-            });*/
+            mSharedPref.saveInSp(SystemPreferences.USER_REGISTERED, true);        // set true that user is registered in the server
 
-            postRegisterUserReq = new Runnable() {
-                @Override
-                public void run() {
-                    httpNetwork mHttpNet = new httpNetwork(context);
-                    mHttpNet.registerUserRequest();
-                }
-            };
-            postRegisterUserReq.run();
-            SystemPreferences.IS_YOUR_FIRST_PLAY = false;
+            HttpRequests mHttpReqests = new HttpRequests(this,0,4);         // flag 4 -> register user to the server
+            mHttpReqests.run();
+
 
         }else{
             // if user uses this app not first time but has no tags added
@@ -100,13 +88,12 @@ public class MainActivity extends ActionBarActivity {
             startService(calObserverIntent);
         }
 
-        SharedPref mSharedPref = new SharedPref(this);
         try {
             // get ids of this device for credential issue
             WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             WifiInfo wInfo = wifiManager.getConnectionInfo();
             String macAddress = wInfo.getMacAddress();
-            Log.d(TAG, macAddress);
+            Log.d(TAG, String.valueOf(macAddress));
             mSharedPref.saveInSp(SystemPreferences.MAC_ADDRESS, macAddress);
         }catch(Exception e){
             e.printStackTrace();
@@ -123,8 +110,6 @@ public class MainActivity extends ActionBarActivity {
 
         Intent intent = new Intent(this, httpService.class);
         startService(intent);
-
-
 
         ArrayList<String> list = new ArrayList<>();
         list.add("9");

@@ -20,8 +20,8 @@ import android.util.Log;
 public class CalendarUpdatedService extends Service {
     static final String TAG = "CalendarUpdatedService";
     Context context = this;
-    Runnable postCalendarUpdatedReq;
-    CalendarMethods mCalendar;
+    HttpRequests mHttpRequests;
+    CalendarMethods mCalendar = new CalendarMethods(context);
     httpNetwork mHttpNet;
 
     @Override
@@ -31,16 +31,8 @@ public class CalendarUpdatedService extends Service {
         getContentResolver().registerContentObserver(CalendarContract.Events.CONTENT_URI, true, observer);
 
         // post calendar event once when checkbox is checked
-        Runnable syncCalToServer = new Runnable() {
-            @Override
-            public void run() {
-                mCalendar = new CalendarMethods(context);
-                mHttpNet = new httpNetwork(context);
-                mHttpNet.updateCalendarReq(mCalendar.queryEvents(context));
-            }
-        };
-        syncCalToServer.run();
-
+        mHttpNet = new httpNetwork(context);
+        mHttpNet.updateCalendarReq(mCalendar.queryEvents(context));
 
         return returnValue;
     }
@@ -61,16 +53,8 @@ public class CalendarUpdatedService extends Service {
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange);
             Log.i(TAG, "calendar state updated");
-
-            postCalendarUpdatedReq = new Runnable() {
-                @Override
-                public void run() {
-                    mCalendar = new CalendarMethods(context);
-                    mHttpNet = new httpNetwork(context);
-                    mHttpNet.updateCalendarReq(mCalendar.queryEvents(context));
-                }
-            };
-            postCalendarUpdatedReq.run();
+            mHttpNet = new httpNetwork(context);
+            mHttpNet.updateCalendarReq(mCalendar.queryEvents(context));
 
         }
     };
