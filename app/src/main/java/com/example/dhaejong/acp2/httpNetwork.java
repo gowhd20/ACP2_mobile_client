@@ -1,13 +1,16 @@
 package com.example.dhaejong.acp2;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,7 +46,6 @@ public class httpNetwork {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String TAG = "httpNetwork";
 
-
     httpNetwork(Context context){
         this.context = context;
         this.client = new OkHttpClient();
@@ -53,6 +55,17 @@ public class httpNetwork {
     }
 
     public String getRequest(String url) throws IOException{
+        request = new Request.Builder()
+                .url(url)
+                .build();
+
+        response = client.newCall(request).execute();
+        String res = response.body().string();
+        response.body().close();
+        return res;
+    }
+
+    public String getNetworkCheck(String url, final HttpCallback cb) throws IOException{
         request = new Request.Builder()
                 .url(url)
                 .build();
@@ -109,7 +122,11 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> update gcm token response");
+                Log.d(TAG, response.toString() + " -> update gcm token response");
+                if(mSharedPref.getIntFromSP(SystemPreferences.USER_ID) == 0) {
+                    HttpRequests mHttpRequests = new HttpRequests(context, 0, SystemPreferences.REGISTER_USER);         // flag 4 -> register user to the server
+                    mHttpRequests.run();
+                }
             }
         };
 
@@ -132,11 +149,11 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> update calendar event response");
+                Log.d(TAG, response.toString() + " -> update calendar event response");
             }
         };
         try {
-            postRequest(SystemPreferences.POST_REGISTER_USER_URL, calEvents, cb);
+            postRequest(SystemPreferences.UPDATE_CALENDAR, calEvents, cb);
 
         }catch(Exception e){
             e.printStackTrace();
@@ -154,7 +171,7 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-                Log.d(TAG, response.toString()+" -> delete user category response");
+                Log.d(TAG, response.toString() + " -> delete user category response");
 
             }
         };
@@ -179,6 +196,7 @@ public class httpNetwork {
             public void onSuccess(Response response) {
                 Log.d(TAG, response.body().toString()+" -> register user category response");
                 REQ_ITEM_ADD_SUCCEED = true;
+                response.body().close();
             }
         };
         try {
@@ -203,11 +221,11 @@ public class httpNetwork {
                 try {
 
                     Log.d(TAG, response.body().string() + " -> update user response");
-
-                }catch(IOException e){
+                }catch(IOException e) {
                     e.printStackTrace();
+                }finally{
+                    response.body().close();
                 }
-
             }
         };
         try {
@@ -230,21 +248,28 @@ public class httpNetwork {
 
             @Override
             public void onSuccess(Response response) {
-            try {
                 try {
-                    String userId = response.body().string();
-                    Log.d(TAG, userId + " -> register user response");
-                    JSONObject idObj = new JSONObject(userId);
-                    Log.i(TAG, idObj.getString("id") + " look at this");
-                    mSharedPref.saveInSp(SystemPreferences.USER_ID, Integer.valueOf(idObj.getString("id")));    // store user id
-                }catch(JSONException e){
+                    try {
+                        String userId = response.body().string();
+                        Log.d(TAG, userId + " -> register user response");
+                        JSONObject idObj = new JSONObject(userId);
+                        Log.i(TAG, idObj.getString("id") + " look at this");
+                        mSharedPref.saveInSp(SystemPreferences.USER_ID, Integer.valueOf(idObj.getString("id")));    // store user id
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }finally{
+                        response.body().close();
+                    }
+
+                }catch(IOException e){
                     e.printStackTrace();
                 }
-
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-
+                if(mSharedPref.getIntFromSP(SystemPreferences.USER_ID)!=0){
+                    HttpRequests mHttpReq = new HttpRequests(context, 0, SystemPreferences.REGISTER_MAC_ADDRESS); // flag 3 -> register mac address
+                    mHttpReq.run();
+                }else{
+                    Log.e(TAG, "failed to register mac address, user id not exist");
+                }
             }
         };
         try {
@@ -272,6 +297,8 @@ public class httpNetwork {
 
                 }catch(IOException e){
                     e.printStackTrace();
+                }finally {
+                    response.body().close();
                 }
             }
         };
@@ -284,5 +311,26 @@ public class httpNetwork {
             e.printStackTrace();
             Log.e(TAG, "register mac address failed");
         }
+    }
+
+    public int getIdOfCategory(String response){
+        JSONArray arrayObj;
+        JSONObject obj;
+
+        try{
+            arrayObj = new JSONArray(response);
+            int count = 0;
+            while(arrayObj.length()>count){
+                obj = arrayObj.getJSONObject(count);
+                if(obj.get("category").toString().replace("\"", "").equals(SystemPreferences.CATEGORY_IN_USE)){
+                    return Integer.valueOf(obj.get("id").toString());
+                }
+                count++;
+            }
+
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

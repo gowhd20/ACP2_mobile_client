@@ -5,29 +5,41 @@ import android.content.Intent;
 import android.content.SyncAdapterType;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.Image;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Events extends ActionBarActivity {
@@ -57,8 +69,9 @@ public class Events extends ActionBarActivity {
         titleLayout.setLayoutParams(titleParams);
         titleLayout.setId(layoutId);
         titleLayout.addView(titleText);
-        titleText.setText("Title: \n" + title);
-        titleText.setTextSize(15);
+        titleText.setText("\n" + title);
+        titleText.setTextSize(20);
+        titleText.setTextColor(Color.RED);
         titleText.setTypeface(Typeface.DEFAULT_BOLD);
 
         return titleLayout;
@@ -78,9 +91,11 @@ public class Events extends ActionBarActivity {
         descriptionLayout.setLayoutParams(descriptionParams);
         descriptionLayout.setId(layoutId);
         descriptionLayout.addView(descriptionText);
-        descriptionText.setText("Description: \n" + description);
+        descriptionText.setLinksClickable(true);
+        descriptionText.setAutoLinkMask(Linkify.ALL);
         descriptionText.setTextSize(15);
         descriptionText.setTypeface(Typeface.DEFAULT_BOLD);
+        descriptionText.setText("\n" + Html.fromHtml(description));
 
         return descriptionLayout;
 
@@ -139,7 +154,7 @@ public class Events extends ActionBarActivity {
         priceLayout.setLayoutParams(priceParams);
         priceLayout.setId(layoutId);
         priceLayout.addView(priceText);
-        priceText.setText("Price: \n" + price);
+        priceText.setText("Price: \n" + Html.fromHtml(price));
         priceText.setTextSize(15);
         priceText.setTypeface(Typeface.DEFAULT_BOLD);
 
@@ -170,20 +185,26 @@ public class Events extends ActionBarActivity {
         int layoutId = getResources().getIdentifier("url", "id", getPackageName());
 
         LinearLayout urlLayout = new LinearLayout(this);
-        TextView urlText = new TextView(this);
+        //TextView urlText = new TextView(this);
+        ImageView urlImageView = new ImageView(this);
         LinearLayout.LayoutParams urlParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         urlParams.topMargin = 20;
         urlParams.gravity = Gravity.CENTER_HORIZONTAL;
         urlParams.gravity = Gravity.CENTER_VERTICAL;
         urlLayout.setOrientation(LinearLayout.VERTICAL);
         urlLayout.setLayoutParams(urlParams);
-        urlLayout.addView(urlText);
+        //urlLayout.addView(urlText);
+        urlLayout.addView(urlImageView);
         urlLayout.setId(layoutId);
-        urlText.setClickable(true);
-        urlText.setMovementMethod(LinkMovementMethod.getInstance());
-        String text = "<a href='"+link+"'> Link URL </a>";
-        urlText.setText(Html.fromHtml(text));
-        urlText.setTextSize(15);
+        //urlText.setClickable(true);
+        //urlText.setMovementMethod(LinkMovementMethod.getInstance());
+        //String text = "<a href='"+link+"'> Link URL </a>";
+        //urlText.setText(Html.fromHtml(text));
+        //urlText.setTextSize(15);
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        Picasso.with(context).load(link).resize(screenWidth,screenHeight/3)
+                .centerCrop().into(urlImageView);
 
         return urlLayout;
     }
@@ -195,8 +216,8 @@ public class Events extends ActionBarActivity {
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         btnParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         googleMapBtn.setTag(address);
-        googleMapBtn.setImageResource(R.drawable.ic_place_black_24dp);
-        //googleMapBtn.setBackgroundColor(Color.WHITE);
+        googleMapBtn.setImageResource(R.drawable.ic_google_map_icon);
+        googleMapBtn.setBackgroundColor(Color.TRANSPARENT);
         googleMapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -233,6 +254,21 @@ public class Events extends ActionBarActivity {
         }
     }
 
+    public ArrayList<String> searchWebUrl(String text){
+        ArrayList<String> links = new ArrayList<>();
+        String regex = "\\(?\\b(https://|http://|www[.])[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(text);
+        while(m.find()) {
+            String urlStr = m.group();
+            if (urlStr.startsWith("(") && urlStr.endsWith(")")) {
+                urlStr = urlStr.substring(1, urlStr.length() - 1);
+            }
+            links.add(urlStr);
+        }
+        return links;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -244,6 +280,7 @@ public class Events extends ActionBarActivity {
         ArrayList<String> selectedAllInfo;
         LinearLayout mainLayout = (LinearLayout) findViewById(R.id.contentView);
         selectedAllInfo = mLocalDB.getAllItemsById(Integer.valueOf(selectedInfo.get(0)), LocalDB.DATABASE_TABLE_NAME_EVENTS);
+
         Log.d(TAG, selectedAllInfo.toString());
 
         // title
@@ -253,10 +290,6 @@ public class Events extends ActionBarActivity {
         // description
         if(!selectedAllInfo.get(5).isEmpty()){
             mainLayout.addView(addDescription(selectedAllInfo.get(5)));
-        }
-        // address
-        if(!selectedAllInfo.get(4).isEmpty()){
-            mainLayout.addView(addLocation(selectedAllInfo.get(4)));
         }
         // price
         if(!selectedAllInfo.get(3).isEmpty()){
@@ -273,6 +306,10 @@ public class Events extends ActionBarActivity {
         // end time
         if(!selectedAllInfo.get(0).isEmpty()){
             mainLayout.addView(addEndTime(Long.valueOf(selectedAllInfo.get(0))));
+        }
+        // address
+        if(!selectedAllInfo.get(4).isEmpty()){
+            mainLayout.addView(addLocation(selectedAllInfo.get(4)));
         }
         // location map
         if(!selectedAllInfo.get(4).isEmpty()){
@@ -313,5 +350,20 @@ public class Events extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    public class CropSquareTransformation implements Transformation {
+        @Override public Bitmap transform(Bitmap source) {
+            int size = Math.min(source.getWidth(), source.getHeight());
+            int x = (source.getWidth() - size) / 2;
+            int y = (source.getHeight() - size) / 2;
+            Bitmap result = Bitmap.createBitmap(source, x, y, size, size);
+            if (result != source) {
+                source.recycle();
+            }
+            return result;
+        }
+
+        @Override public String key() { return "square()"; }
     }
 }

@@ -59,24 +59,6 @@ public class MainActivity extends ActionBarActivity {
         // open mainActivity and register user to the server
         int tagCount = mTags.countTagsInList;
         SharedPref mSharedPref = new SharedPref(this);
-        if(!mSharedPref.getFromSP(SystemPreferences.USER_REGISTERED)){
-            // or first time user
-            // user must register their info to the server
-            // possibly register here without facebook id and token
-            mSharedPref.saveInSp(SystemPreferences.USER_REGISTERED, true);        // set true that user is registered in the server
-
-            HttpRequests mHttpReqests = new HttpRequests(this,0,4);         // flag 4 -> register user to the server
-            mHttpReqests.run();
-
-
-        }else{
-            // if user uses this app not first time but has no tags added
-            // open mainActivity to give more introduction
-            if(tagCount != 0 ){
-                Intent intent = new Intent(this, Main2Activity.class);
-                startActivity(intent);
-            }
-        }
 
         // configure calendar query service as saved state
         SharedPref mSharedPreference = new SharedPref(this);
@@ -108,10 +90,30 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
+        //if(!mSharedPref.getFromSP(SystemPreferences.USER_REGISTERED)){
+            // or first time user
+            // user must register their info to the server
+            // possibly register here without facebook id and token
+        //    mSharedPref.saveInSp(SystemPreferences.USER_REGISTERED, true);        // set true that user is registered in the server
+
+        //TODO: get google token is called later than user register
+         //   HttpRequests mHttpRequests = new HttpRequests(this,0,4);         // flag 4 -> register user to the server
+         //   mHttpRequests.run();
+
+
+        //}else{
+            // if user uses this app not first time but has no tags added
+            // open mainActivity to give more introduction
+            if(tagCount != 0 ){
+                Intent intent = new Intent(this, Main2Activity.class);
+                startActivity(intent);
+            }
+        //}
+
         Intent intent = new Intent(this, httpService.class);
         startService(intent);
 
-        ArrayList<String> list = new ArrayList<>();
+        /*ArrayList<String> list = new ArrayList<>();
         list.add("9");
         list.add("tivoli hot bitch party");
         list.add("bubble");
@@ -132,9 +134,7 @@ public class MainActivity extends ActionBarActivity {
 
         }else{
             Log.e(TAG, "wrong");
-        }
-
-
+        }*/
     }
 
 

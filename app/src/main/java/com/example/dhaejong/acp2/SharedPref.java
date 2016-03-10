@@ -30,7 +30,7 @@ public class SharedPref {
 
     public String getStringFromSP(String key){
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("General", android.content.Context.MODE_PRIVATE);
-        return preferences.getString(key, "");
+        return preferences.getString(key, null);
     }
 
     public void saveInSp(String key, String value){
@@ -55,11 +55,11 @@ public class SharedPref {
     public ArrayList<String> getDataForUserRegistration() throws Exception{
         ArrayList<String> registerDataArray = new ArrayList<>();
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("General", android.content.Context.MODE_PRIVATE);
-        registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_ID, ""));
-        registerDataArray.add(preferences.getString(SystemPreferences.EMAIL, ""));
-        registerDataArray.add(preferences.getString(SystemPreferences.USER_NAME, ""));
-        registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, ""));
-        registerDataArray.add(preferences.getString(SystemPreferences.GCM_TOKEN, ""));
+        registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_ID, null));
+        registerDataArray.add(preferences.getString(SystemPreferences.EMAIL, null));
+        registerDataArray.add(preferences.getString(SystemPreferences.USER_NAME, null));
+        registerDataArray.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, null));
+        registerDataArray.add(preferences.getString(SystemPreferences.GCM_TOKEN, null));
         return registerDataArray;
     }
 
@@ -68,10 +68,10 @@ public class SharedPref {
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences("General", android.content.Context.MODE_PRIVATE);
         int userId = preferences.getInt(SystemPreferences.USER_ID, 0);
         updateDataArr.add(String.valueOf(userId));
-        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_ID, ""));
-        updateDataArr.add(preferences.getString(SystemPreferences.EMAIL, ""));
-        updateDataArr.add(preferences.getString(SystemPreferences.USER_NAME, ""));
-        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, ""));
+        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_ID, null));
+        updateDataArr.add(preferences.getString(SystemPreferences.EMAIL, null));
+        updateDataArr.add(preferences.getString(SystemPreferences.USER_NAME, null));
+        updateDataArr.add(preferences.getString(SystemPreferences.FACEBOOK_TOKEN, null));
         return updateDataArr;
     }
 

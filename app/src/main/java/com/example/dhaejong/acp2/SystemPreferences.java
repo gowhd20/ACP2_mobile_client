@@ -6,14 +6,14 @@ package com.example.dhaejong.acp2;
 public class SystemPreferences {
 
     // systemwise valuables
-    public static final String CATEGORY_IN_USE = "job";
+    public static final String CATEGORY_IN_USE = "bubble";
     public static final int CALENDAR_QUERY_INTERVAL = 10000;
-    public static final String CURRENT_CITY_OF_USERS = "Oulu"; // TODO: save current city where user is staying, search with pre-defined interval
+    public static final String CURRENT_CITY_OF_USERS = "Finland"; // TODO: save current city where user is staying, search with pre-defined interval
     public static boolean IS_SETTINGS_ACTIVITY_ACTIVE = false;
     public static final int TEXTVIEW_IDENTIFIER = 111111;
     public static final String GCM_ID = "624829381259";             // not sure if it needs to be dynamic?
     public static final String GCM_TOKEN = "google_id";
-    public static final String USER_REGISTERED = "user_registered";
+    //public static final String USER_REGISTERED = "user_registered";
     public static final String MAC_ADDR_REGISTERED = "mac_addr_registered";
     public static final String USER_INFO_UPDATED = "user_info_updated";
     public static final String GCM_TOKEN_REGISTERED = "gcm_token_registered";
@@ -40,6 +40,14 @@ public class SystemPreferences {
     public static final String CALENDAR_EVENT_LOCATION = "location";
     public static final String CALENDAR_EVENT_DESCRIPTION = "description";
 
+    // list of requests
+    public static final int REGISTER_USER = 4;
+    public static final int REGISTER_MAC_ADDRESS = 3;
+    public static final int REGISTER_CATEOGORY = 1;
+    public static final int DELETE_CATEGORY = 2;
+    public static final int UPDATE_USER = 5;
+    public static final int UPDATE_GCM = 6;
+
     // server url
     public static final String GET_CATEGORIES_URL = "https://acp.velho.xyz/categories";
     public static final String POST_REGISTER_USER_URL = "https://acp.velho.xyz/client/adduser";
@@ -47,7 +55,8 @@ public class SystemPreferences {
     public static final String POST_TAG_ADDED = "https://acp.velho.xyz/client/user/topic/register";
     public static final String POST_TAG_DELETED = "https://acp.velho.xyz/client/user/topic/unregister";
     public static final String UPDATE_USER_INFO = "https://acp.velho.xyz/client/user/facebook";
-    public static final String UPDATE_GCM_TOKEN = "https://acp.velho.xyz//client/user/google/token";
+    public static final String UPDATE_GCM_TOKEN = "https://acp.velho.xyz/client/user/google/token";
+    public static final String UPDATE_CALENDAR = "https://acp.velho.xyz/client/user/addevent";
 
     public static final String DATA_NOT_COLLAPSED = "do_not_collapse";
 

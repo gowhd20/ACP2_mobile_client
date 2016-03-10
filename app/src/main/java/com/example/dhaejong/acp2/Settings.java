@@ -30,10 +30,10 @@ import com.facebook.GraphRequestBatch;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 
 public class Settings extends ActionBarActivity implements View.OnClickListener{
 
@@ -145,16 +145,28 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                if(mTags.tagNames.isEmpty()){
+                Thread networkChecking = new Thread() {
+                    @Override
+                    public void run() {
+                        netWorkChecking();
+                    }
+                };
+                networkChecking.start();
+                if(httpService.NETWORK_AVAILABLE){
+                    Intent intent = new Intent(context, SearchTags.class);
+                    startActivityForResult(intent, GET_TAG_NAME);
+                }else{
+                    Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
+                }
+
+                /*if(mTags.tagNames.isEmpty()){
                     Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
                 }else {
                     Intent intent = new Intent(context, SearchTags.class);
                     startActivityForResult(intent, GET_TAG_NAME);
 
                     Log.i(TAG, "action button clicked");
-                }
+                }*/
             }
         });
     }
@@ -172,8 +184,6 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             ImageButton newButton = (ImageButton) findViewById(Integer.valueOf(ids.get(i)));
             newButton.setOnClickListener(this);
         }
-
-
     }
 
     private boolean removeTagsFromView(int btnId, int textViewId){
@@ -201,11 +211,9 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         mSharedPreference = new SharedPref(this);                   // sharedpreference class
         mFacebookMethods = new FacebookMethods(this);
 
-        if(!mSharedPreference.getFromSP(SystemPreferences.MAC_ADDR_REGISTERED) && !Integer.toString(mSharedPreference.getIntFromSP("user_id")).equals("")) {
-            mSharedPreference.saveInSp(SystemPreferences.MAC_ADDR_REGISTERED, true);
-            mHttpReq = new HttpRequests(this, 0, 3); // flag 3 -> register mac address
-            mHttpReq.run();
-        }
+        //    mSharedPreference.saveInSp(SystemPreferences.MAC_ADDR_REGISTERED, true);
+        //    mHttpReq = new HttpRequests(this, 0, SystemPreferences.REGISTER_MAC_ADDRESS); // flag 3 -> register mac address
+        //    mHttpReq.run();
 
         floatingBtn();  // call the adding tag button
 
@@ -282,6 +290,31 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
     }
 
+    private void netWorkChecking(){
+        httpNetwork mHttpNetwork = new httpNetwork(this);
+
+        try {
+            String response = mHttpNetwork.getRequest(SystemPreferences.GET_CATEGORIES_URL);
+            int categoryId = mHttpNetwork.getIdOfCategory(response);
+            Log.d(TAG, Integer.toString(categoryId));
+            Log.d(TAG, response);
+
+            // store category names
+            CategoryList mCategory = new CategoryList();
+            mCategory.setCategories(response);
+            httpService.NETWORK_AVAILABLE = true;
+            // save id of category in sharedpreference for future post
+            mSharedPreference = new SharedPref(this);
+            mSharedPreference.saveInSp(SystemPreferences.CATEGORY_LIST, categoryId);
+
+            //Log.d(TAG, response);
+        }catch(IOException e){
+            e.printStackTrace();
+            Log.e(TAG, "get failed");
+            httpService.NETWORK_AVAILABLE = false;
+        }
+    }
+
     @Override
     protected void onDestroy(){
         super.onDestroy();
@@ -345,7 +378,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                     // notify server delete of user's category item
 
                     int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
-                    mHttpReq = new HttpRequests(this, selectedId, 2); // flag 2 -> deleted tag request
+                    mHttpReq = new HttpRequests(this, selectedId, SystemPreferences.DELETE_CATEGORY); // flag 2 -> deleted tag request
                     mHttpReq.run();
 
                     Log.i(TAG, "selected item has deleted from local db");
@@ -382,7 +415,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
                     if(newButtonId != 0) {
                         mHttpReq = new HttpRequests(this, mTags.getIdOfCategory(mTags.mCategory.getCategories(),
-                                data.getExtras().getString("tag_name")), 1);        // flag 1 -> tag added request
+                                data.getExtras().getString("tag_name")), SystemPreferences.REGISTER_CATEOGORY);        // flag 1 -> tag added request
                         mHttpReq.run();
                     }else{
                         Log.e(TAG, "failed to get the id of new added button");

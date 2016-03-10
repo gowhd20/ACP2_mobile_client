@@ -3,6 +3,7 @@ package com.example.dhaejong.acp2;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -34,7 +35,7 @@ public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = "RegIntentService";
     private static final String[] TOPICS = {"global"};
-
+    SharedPref mSharedPref = new SharedPref(this);
     public RegistrationIntentService() {
         super(TAG);
     }
@@ -58,20 +59,22 @@ public class RegistrationIntentService extends IntentService {
             Log.i(TAG, "GCM Registration Token: " + token);
 
             // TODO: Implement this method to send any registration to your app's servers.
+            // if stored token is not equal to the latest one, update server, local token
+            //Log.i(TAG, mSharedPref.getStringFromSP(SystemPreferences.GCM_TOKEN));
+            //if(!mSharedPref.getStringFromSP(SystemPreferences.GCM_TOKEN).equals(token)) {
+                sendRegistrationToServer(token);
+                // update/save gcm token locally
+                mSharedPref.saveInSp(SystemPreferences.GCM_TOKEN, token);
 
-            // update/save gcm token locally
-            SharedPref mSharedPref = new SharedPref(this);
-            mSharedPref.saveInSp(SystemPreferences.GCM_TOKEN, token);
+                // Subscribe to topic channels
+                subscribeTopics(token);
 
-            sendRegistrationToServer(token);
 
-            // Subscribe to topic channels
-            subscribeTopics(token);
-
-            // You should store a boolean that indicates whether the generated token has been
-            // sent to your server. If the boolean is false, send the token to your server,
-            // otherwise your server should have already received the token.
-            sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+                // You should store a boolean that indicates whether the generated token has been
+                // sent to your server. If the boolean is false, send the token to your server,
+                // otherwise your server should have already received the token.
+                sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+            //}
             // [END register_for_gcm]
         } catch (Exception e) {
             Log.d(TAG, "Failed to complete token refresh", e);
@@ -94,7 +97,7 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         // also when it refreshes
-        HttpRequests mHttpRequests = new HttpRequests(this, token, 6);  // flag 6 -> update gcm token request
+        HttpRequests mHttpRequests = new HttpRequests(this, token, SystemPreferences.UPDATE_GCM);  // flag 6 -> update gcm token request
         mHttpRequests.run();
 
     }

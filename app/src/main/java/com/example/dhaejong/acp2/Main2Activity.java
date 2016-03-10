@@ -110,13 +110,18 @@ public class Main2Activity extends ActionBarActivity {
             public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 //Log.i(TAG, view.toString());
                 Object obj = parent.getItemAtPosition(position);
+                long objId = id;
                 String selectedItem = obj.toString();
+                Log.d(TAG, selectedItem + " should see this");
+                Log.d(TAG, String.valueOf(objId));
 
                 for(int i=0; i<ids.size(); i++){
                     if(titles.get(i).equals(selectedItem)){
                         Intent contentIntent = new Intent(context, Events.class);
                         contentIntent.putExtra("id", ids.get(i));
                         contentIntent.putExtra("title", titles.get(i));
+                        //Log.d(TAG, ids.get(i));
+                        //Log.d(TAG, titles.get(i));
 
                         startActivity(contentIntent);
                         return;
@@ -166,21 +171,30 @@ public class Main2Activity extends ActionBarActivity {
     }
 
     private class StableArrayAdapter extends ArrayAdapter<String> {
-
+        //HashMap<String, ArrayList<Integer>> mIdMap = new HashMap<>();
         HashMap<String, Integer> mIdMap = new HashMap<>();
-
         public StableArrayAdapter(Context context, int textViewResourceId,
                                   List<String> objects) {
             super(context, textViewResourceId, objects);
             for (int i = 0; i < objects.size(); ++i) {
-                mIdMap.put(objects.get(i), i);
+            /*    if (mIdMap.containsKey(objects.get(i))) {
+                    mIdMap.get(objects.get(i)).add(Integer.valueOf(ids.get(i)));
+                }else{
+                    ArrayList<Integer> keyItem = new ArrayList<>();
+                    keyItem.add(Integer.valueOf(ids.get(i)));
+                    mIdMap.put(objects.get(i), keyItem);
+                }*/
+
+               mIdMap.put(objects.get(i), Integer.valueOf(ids.get(i)));
+               Log.i(TAG, ids.get(i));
+               Log.i(TAG, objects.get(i));
             }
         }
 
         @Override
         public long getItemId(int position) {
             String item = getItem(position);
-            return mIdMap.get(item);
+            return mIdMap.get(item);//.get(0);
         }
 
         @Override

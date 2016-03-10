@@ -72,8 +72,7 @@ public class CalendarMethods {
 
         JsonMethods mJson = new JsonMethods();
         JsonArray calJsonArr = new JsonArray();
-
-        while (cur.moveToNext()) {
+        do{
             // can also add condition if isEventOn == false;
             // Get the field values
 
@@ -115,8 +114,8 @@ public class CalendarMethods {
             }
             calJsonArr.add(mJson.getCalendarInfoJson(calendarArr));
             calendarArr.clear();
-
         }
+        while (cur.moveToNext());
         JsonObject calJsonObj = new JsonObject();
         SharedPref mSharedPref = new SharedPref(context);
 

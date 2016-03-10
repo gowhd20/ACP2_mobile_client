@@ -49,8 +49,8 @@ public class LocalDB extends SQLiteOpenHelper{
             "("+COLUMN_NAME_TAG_ID+" integer primary key, "+COLUMN_NAME_TAG_NAME+" text not null)";
 
     private static final String CREATE_TABLE_EVENT_PLAYER = "create table if not exists "+DATABASE_TABLE_NAME_EVENTS+" " +
-            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null, "+COLUMN_NAME_EVENT_CATEGORIES+" text, " +
-            COLUMN_NAME_EVENT_DESCRIPTION+" longtext not null, "+COLUMN_NAME_EVENT_ADDRESS+" text not null, "+COLUMN_NAME_EVENT_PRICE+" text, "+
+            "("+COLUMN_NAME_EVENT_ID+" integer primary key, "+COLUMN_NAME_EVENT_TITLE+" text not null unique, "+COLUMN_NAME_EVENT_CATEGORIES+" text, " +
+            COLUMN_NAME_EVENT_DESCRIPTION+" longtext not null, "+COLUMN_NAME_EVENT_ADDRESS+" text, "+COLUMN_NAME_EVENT_PRICE+" text, "+
             COLUMN_NAME_EVENT_IMAGE_URL+ " text, "+COLUMN_NAME_EVENT_START_TIME+" integer not null, "+COLUMN_NAME_EVENT_END_TIME+" integer)";
 
     private Context m_context;

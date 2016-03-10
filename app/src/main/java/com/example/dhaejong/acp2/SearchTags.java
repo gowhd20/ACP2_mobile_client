@@ -96,11 +96,11 @@ public class SearchTags extends ActionBarActivity {
             public void onClick(View v) {
                 // params to send back to Settings activity
                 String selectedItem = v.getTag().toString();
-                Log.d(TAG,mTags.mCategory.toString());
+                Log.d(TAG, mTags.mCategory.toString());
                 int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), selectedItem);
-                if(selectedId != 0){
+                if (selectedId != 0) {
                     sendBackTagName(selectedItem, selectedId);
-                }else{
+                } else {
                     Log.e(TAG, "failed to find id of selected tag");
                 }
                 dialog.dismiss();
@@ -126,9 +126,11 @@ public class SearchTags extends ActionBarActivity {
         if(!mTags.tagNames.isEmpty()) {
             // set list of preview items
             for (int i = 0; i < countTags; i++) {
-                SearchResult option = new SearchResult(mTags.tagNames.get(i),          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
-                        ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
-                search.addSearchable(option);
+                if(!mTags.tagNames.get(i).equals("bubble")) {
+                    SearchResult option = new SearchResult(mTags.tagNames.get(i),          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
+                            ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
+                    search.addSearchable(option);
+                }
             }
         }else{
             SearchResult option = new SearchResult(null,          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),

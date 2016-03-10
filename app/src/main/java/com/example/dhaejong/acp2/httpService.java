@@ -22,10 +22,10 @@ import java.util.ArrayList;
 public class httpService extends Service {
 
     private static final String TAG = "httpService";
-
     httpNetwork mHttpNetwork;
     Context context = this;
     boolean exit = false;
+    public static Boolean NETWORK_AVAILABLE = true;
     protected ArrayList<CategoryList> tags;
     private void getRequest(){
 
@@ -33,14 +33,14 @@ public class httpService extends Service {
 
         try {
             String response = mHttpNetwork.getRequest(SystemPreferences.GET_CATEGORIES_URL);
-            int categoryId = getIdOfCategory(response);
+            int categoryId = mHttpNetwork.getIdOfCategory(response);
             Log.d(TAG, Integer.toString(categoryId));
             Log.d(TAG, response);
 
             // store category names
             CategoryList mCategory = new CategoryList();
             mCategory.setCategories(response);
-
+            NETWORK_AVAILABLE = true;
             // save id of category in sharedpreference for future post
             SharedPref mSharedPref = new SharedPref(this);
             mSharedPref.saveInSp(SystemPreferences.CATEGORY_LIST, categoryId);
@@ -49,29 +49,8 @@ public class httpService extends Service {
         }catch(IOException e){
             e.printStackTrace();
             Log.e(TAG, "get failed");
+            NETWORK_AVAILABLE = false;
         }
-    }
-
-
-    private int getIdOfCategory(String response){
-        JSONArray arrayObj;
-        JSONObject obj;
-
-        try{
-            arrayObj = new JSONArray(response);
-            int count = 0;
-            while(arrayObj.length()>count){
-                obj = arrayObj.getJSONObject(count);
-                if(obj.get("category").toString().replace("\"", "").equals(SystemPreferences.CATEGORY_IN_USE)){
-                    return Integer.valueOf(obj.get("id").toString());
-                }
-                count++;
-            }
-
-        }catch(JSONException e){
-            e.printStackTrace();
-        }
-        return 0;
     }
 
     Thread getRequestThread = new Thread(new Runnable() {
