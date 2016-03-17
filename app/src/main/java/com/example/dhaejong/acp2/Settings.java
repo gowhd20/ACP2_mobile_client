@@ -69,6 +69,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             @Override
             public void onClick(View v) {
                 removeTagsFromView(buttonId, textViewId);
+                deleteCategoryItemFromDb(buttonId, textViewId);
                 dialog.dismiss();
             }
         });
@@ -148,7 +149,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                 Thread networkChecking = new Thread() {
                     @Override
                     public void run() {
-                        netWorkChecking();
+                        checkNetworkState();
                     }
                 };
                 networkChecking.start();
@@ -282,6 +283,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             @Override
             public void onError(FacebookException e) {
                 //"If login attempt Failed.";
+                Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -290,7 +292,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
     }
 
-    private void netWorkChecking(){
+    private void checkNetworkState(){
         httpNetwork mHttpNetwork = new httpNetwork(this);
 
         try {
@@ -313,6 +315,19 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             Log.e(TAG, "get failed");
             httpService.NETWORK_AVAILABLE = false;
         }
+    }
+
+    public void deleteCategoryItemFromDb(int resId, int mTxtViewId){
+        // delete item from local db
+        mTags.mLocalDB.deleteTag(resId);
+        TextView mTxtView = (TextView) findViewById(mTxtViewId);
+        // notify server delete of user's category item
+
+        int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
+        mHttpReq = new HttpRequests(this, selectedId, SystemPreferences.DELETE_CATEGORY); // flag 2 -> deleted tag request
+        mHttpReq.run();
+
+        Log.i(TAG, "selected item has deleted from local db");
     }
 
     @Override
@@ -364,24 +379,23 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
         // TODO: this is temporal method to prevent user from removing tags without internet connection however
         // TODO: this will need fundamental solution ex) remove only response from server is true
-        if(mTags.ifHasCategories()) {
+
+        Thread networkChecking = new Thread() {
+            @Override
+            public void run() {
+                checkNetworkState();
+            }
+        };
+        networkChecking.start();
+        if(httpService.NETWORK_AVAILABLE){
+
+        //if(mTags.ifHasCategories()) {
             if (checkExistence != 0) {  // resource exists
                 try {
                     // delete item from view
                     TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
                     Log.i(TAG, "Resource exists and with textview " + mTxtView.getId() + " are clicked to delete");
                     callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
-
-                    // delete item from local db
-                    mTags.mLocalDB.deleteTag(selectedResId);
-
-                    // notify server delete of user's category item
-
-                    int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
-                    mHttpReq = new HttpRequests(this, selectedId, SystemPreferences.DELETE_CATEGORY); // flag 2 -> deleted tag request
-                    mHttpReq.run();
-
-                    Log.i(TAG, "selected item has deleted from local db");
 
                 } catch (Exception e) {
                     Log.i(TAG, "something went wrong with getting resource");
