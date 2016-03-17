@@ -48,7 +48,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
     FacebookMethods mFacebookMethods;
     HttpRequests mHttpReq;
 
-    private void callDialog(String tagName, final int buttonId, final int textViewId){
+    private void callDialog(final String tagName, final int buttonId, final int textViewId){
 
         // custom dialog
         final Dialog dialog = new Dialog(context);
@@ -69,7 +69,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             @Override
             public void onClick(View v) {
                 removeTagsFromView(buttonId, textViewId);
-                deleteCategoryItemFromDb(buttonId, textViewId);
+                deleteCategoryItemFromDb(buttonId, tagName);
                 dialog.dismiss();
             }
         });
@@ -317,13 +317,11 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         }
     }
 
-    public void deleteCategoryItemFromDb(int resId, int mTxtViewId){
+    public void deleteCategoryItemFromDb(int resId, String tagName){
         // delete item from local db
         mTags.mLocalDB.deleteTag(resId);
-        TextView mTxtView = (TextView) findViewById(mTxtViewId);
         // notify server delete of user's category item
-
-        int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), mTxtView.getText().toString());
+        int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), tagName);
         mHttpReq = new HttpRequests(this, selectedId, SystemPreferences.DELETE_CATEGORY); // flag 2 -> deleted tag request
         mHttpReq.run();
 

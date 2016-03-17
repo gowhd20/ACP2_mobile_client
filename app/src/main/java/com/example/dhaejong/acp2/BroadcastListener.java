@@ -20,6 +20,8 @@ public class BroadcastListener extends BroadcastReceiver {
             Log.i(TAG, "detect a reboot in BroadcastListener.java");
 
             // restart get request service
+            // TODO: this won't need as get query take place everytime user interact with app interface which requires server data
+            // TODO: however this need some adjustment in code otherwise we found error messages that attempted searchbar search without category contents, so i will leave this for now
             Intent httpRequestIntent = new Intent(context, httpService.class);
             context.startService(httpRequestIntent);
 

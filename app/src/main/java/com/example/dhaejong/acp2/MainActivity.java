@@ -110,31 +110,10 @@ public class MainActivity extends ActionBarActivity {
             }
         //}
 
+        // TODO: this won't need as get query take place everytime user interact with app interface which requires server data
+        // TODO: however this need some adjustment in code otherwise we found error messages that attempted searchbar search without category contents, so i will leave this for now
         Intent intent = new Intent(this, httpService.class);
         startService(intent);
-
-        /*ArrayList<String> list = new ArrayList<>();
-        list.add("9");
-        list.add("tivoli hot bitch party");
-        list.add("bubble");
-        list.add("As the weather is getting warmer, the streets are icy and the snow is falling from the roofs on your head, you know: " +
-                "Summer is almost here! To accelerate the process a bit, we are already throwing you a beach party. So bring your beach toys, " +
-                "leave your winter clothes at home and be ready to feel the heat on your bum and the sand between your toes. As always, " +
-                "with more than student friendly prices, wink wink! ");
-        list.add("Tivoli");
-        list.add("2 in advance, 4 from the door, free entry with ESN Card");
-        list.add("https://www.facebook.com/events/1662196667386875/");
-        list.add("1457305203");
-        list.add("1458305203");
-
-        boolean result = mTags.mLocalDB.addNewEvent(list);
-        if(result){
-            list = mTags.mLocalDB.getAllItemsById(9, LocalDB.DATABASE_TABLE_NAME_EVENTS);
-            Log.d(TAG, list.toString());
-
-        }else{
-            Log.e(TAG, "wrong");
-        }*/
     }
 
 
