@@ -1,10 +1,13 @@
 package com.example.dhaejong.acp2;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
@@ -31,6 +35,8 @@ public class MainActivity extends ActionBarActivity {
     private static final String TAG = "MainActivity";
 
     Context context = this;
+    Tags mTags;
+    EnableGcm mGcm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +55,8 @@ public class MainActivity extends ActionBarActivity {
         });
 
         // TODO: show a notification checking if it's right person when mobile receives events info
-
-        Tags mTags = new Tags(MainActivity.this, this);
-        EnableGcm mGcm = new EnableGcm(context, MainActivity.this);
+        mTags = new Tags(MainActivity.this, this);
+        mGcm = new EnableGcm(context, MainActivity.this);
         mGcm.initGcm();                                               // set all services of gcm
 
         //mTags.mLocalDB.dropDB();    // drop db everytime running *********** test purpose ****************
@@ -105,6 +110,8 @@ public class MainActivity extends ActionBarActivity {
             // if user uses this app not first time but has no tags added
             // open mainActivity to give more introduction
             if(tagCount != 0 ){
+                ProgressBar mRegistrationProgressBar = (ProgressBar) findViewById(R.id.registrationProgressBar);
+                mRegistrationProgressBar.setVisibility(ProgressBar.GONE);
                 Intent intent = new Intent(this, Main2Activity.class);
                 startActivity(intent);
             }
@@ -112,8 +119,8 @@ public class MainActivity extends ActionBarActivity {
 
         // TODO: this won't need as get query take place everytime user interact with app interface which requires server data
         // TODO: however this need some adjustment in code otherwise we found error messages that attempted searchbar search without category contents, so i will leave this for now
-        Intent intent = new Intent(this, httpService.class);
-        startService(intent);
+        //Intent intent = new Intent(this, httpService.class);
+        //startService(intent);
     }
 
 
@@ -155,14 +162,21 @@ public class MainActivity extends ActionBarActivity {
         }
     }
     @Override
-    public void onResume(){
+    protected void onResume() {
         super.onResume();
+        mGcm.registerReceiver();
     }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mGcm.mRegistrationBroadcastReceiver);
+        mGcm.isReceiverRegistered = false;
+        super.onPause();
+    }
+
     @Override
     public void onDestroy(){
         super.onDestroy();
     }
-
-
 
 }

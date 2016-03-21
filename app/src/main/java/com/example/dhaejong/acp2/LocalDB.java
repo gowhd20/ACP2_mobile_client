@@ -157,7 +157,7 @@ public class LocalDB extends SQLiteOpenHelper{
             Log.d(TAG, count + " count of items");
             while (count > 0) {
                 arrayList.add(res.getString(--count));
-                Log.d(TAG, count + " value of count");
+                //Log.d(TAG, count + " value of count");
             }
             res.close();
             db.close();

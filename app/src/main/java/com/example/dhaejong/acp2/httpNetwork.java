@@ -59,22 +59,14 @@ public class httpNetwork {
                 .url(url)
                 .build();
 
-        response = client.newCall(request).execute();
-        String res = response.body().string();
-        response.body().close();
-        return res;
-    }
-
-    public String getNetworkCheck(String url, final HttpCallback cb) throws IOException{
-        request = new Request.Builder()
-                .url(url)
-                .build();
-
-        response = client.newCall(request).execute();
-        String res = response.body().string();
-        response.body().close();
-        return res;
-
+        try {
+            response = client.newCall(request).execute();
+            String res = response.body().string();
+            response.body().close();
+            return res;
+        }catch(Exception e){
+            return null;
+        }
     }
 
     public interface HttpCallback{
@@ -102,11 +94,14 @@ public class httpNetwork {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                httpService.NETWORK_AVAILABLE = false;
+                Log.i(TAG, Boolean.toString(httpService.NETWORK_AVAILABLE));
                 cb.onFailure(call, e);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                httpService.NETWORK_AVAILABLE = true;
                 cb.onSuccess(response);
 
             }
@@ -253,7 +248,7 @@ public class httpNetwork {
                         String userId = response.body().string();
                         Log.d(TAG, userId + " -> register user response");
                         JSONObject idObj = new JSONObject(userId);
-                        Log.i(TAG, idObj.getString("id") + " look at this");
+                        Log.i(TAG, idObj.getString("id") + " -> user id");
                         mSharedPref.saveInSp(SystemPreferences.USER_ID, Integer.valueOf(idObj.getString("id")));    // store user id
                     }catch(JSONException e){
                         e.printStackTrace();

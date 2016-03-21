@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +24,7 @@ public class EnableGcm {
     Activity activity;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "EnableGcm";
+    protected boolean isReceiverRegistered;
 
     public BroadcastReceiver mRegistrationBroadcastReceiver;
     public ProgressBar mRegistrationProgressBar;
@@ -49,6 +53,8 @@ public class EnableGcm {
                 }
             }
         };
+        // Registering BroadcastReceiver
+        registerReceiver();
 
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
@@ -56,6 +62,14 @@ public class EnableGcm {
             context.startService(intent);
         }
 
+    }
+
+    protected void registerReceiver(){
+        if(!isReceiverRegistered) {
+            LocalBroadcastManager.getInstance(context).registerReceiver(mRegistrationBroadcastReceiver,
+                    new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
+            isReceiverRegistered = true;
+        }
     }
 
     /**

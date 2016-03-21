@@ -1,9 +1,11 @@
 package com.example.dhaejong.acp2;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBarActivity;
@@ -68,8 +70,11 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
             @Override
             public void onClick(View v) {
-                removeTagsFromView(buttonId, textViewId);
-                deleteCategoryItemFromDb(buttonId, tagName);
+                //removeTagsFromView(buttonId, textViewId);
+                //deleteCategoryItemFromDb(buttonId, tagName);
+                BackgroundTask deleteItemTask =
+                        new BackgroundTask(Settings.this, buttonId, textViewId, tagName);
+                deleteItemTask.execute();
                 dialog.dismiss();
             }
         });
@@ -292,28 +297,34 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
 
     }
 
-    private void checkNetworkState(){
+    protected boolean checkNetworkState(){
         httpNetwork mHttpNetwork = new httpNetwork(this);
 
         try {
             String response = mHttpNetwork.getRequest(SystemPreferences.GET_CATEGORIES_URL);
-            int categoryId = mHttpNetwork.getIdOfCategory(response);
-            Log.d(TAG, Integer.toString(categoryId));
-            Log.d(TAG, response);
+            if(response != null) {
+                int categoryId = mHttpNetwork.getIdOfCategory(response);
+                Log.d(TAG, Integer.toString(categoryId));
+                Log.d(TAG, response);
 
-            // store category names
-            CategoryList mCategory = new CategoryList();
-            mCategory.setCategories(response);
-            httpService.NETWORK_AVAILABLE = true;
-            // save id of category in sharedpreference for future post
-            mSharedPreference = new SharedPref(this);
-            mSharedPreference.saveInSp(SystemPreferences.CATEGORY_LIST, categoryId);
-
+                // store category names
+                CategoryList mCategory = new CategoryList();
+                mCategory.setCategories(response);
+                httpService.NETWORK_AVAILABLE = true;
+                // save id of category in sharedpreference for future post
+                mSharedPreference = new SharedPref(this);
+                mSharedPreference.saveInSp(SystemPreferences.CATEGORY_LIST, categoryId);
+                return true;
+            }else{
+                httpService.NETWORK_AVAILABLE = false;
+                return false;
+            }
             //Log.d(TAG, response);
         }catch(IOException e){
             e.printStackTrace();
             Log.e(TAG, "get failed");
             httpService.NETWORK_AVAILABLE = false;
+            return false;
         }
     }
 
@@ -326,6 +337,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         mHttpReq.run();
 
         Log.i(TAG, "selected item has deleted from local db");
+        mTags.mLocalDB.close();
     }
 
     @Override
@@ -378,14 +390,20 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
         // TODO: this is temporal method to prevent user from removing tags without internet connection however
         // TODO: this will need fundamental solution ex) remove only response from server is true
 
-        Thread networkChecking = new Thread() {
-            @Override
-            public void run() {
-                checkNetworkState();
+        if (checkExistence != 0) {
+            try {
+                // delete item from view
+                TextView mTxtView = (TextView) findViewById(getTextViewIdByBtnId(selectedResId));
+                Log.i(TAG, "Resource exists and with textview " + mTxtView.getId() + " are clicked to delete");
+                callDialog(mTxtView.getText().toString(), selectedResId, mTxtView.getId());
+
+            } catch (Exception e) {
+                Log.i(TAG, "something went wrong with getting resource");
             }
-        };
-        networkChecking.start();
-        if(httpService.NETWORK_AVAILABLE){
+        }else{
+            Toast.makeText(context, "System couldn't find selected item in the local space", Toast.LENGTH_SHORT).show();
+        }
+       /* if(httpService.NETWORK_AVAILABLE){
 
         //if(mTags.ifHasCategories()) {
             if (checkExistence != 0) {  // resource exists
@@ -401,7 +419,7 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
             }
         }else{
             Toast.makeText(context, "No internet network is available", Toast.LENGTH_SHORT).show();
-        }
+        }*/
 
     }
 
@@ -432,10 +450,62 @@ public class Settings extends ActionBarActivity implements View.OnClickListener{
                     }else{
                         Log.e(TAG, "failed to get the id of new added button");
                     }
-
                 }
                 break;
         }
     }
+
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+        private ProgressDialog dialog;
+        int buttonId;
+        int textViewId;
+        String tagName;
+
+        public BackgroundTask(Settings activity, int btnId, int txtViewId, String name) {
+            dialog = new ProgressDialog(activity);
+            buttonId = btnId;
+            textViewId = txtViewId;
+            tagName = name;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Sending request...");
+            dialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            if(httpService.NETWORK_AVAILABLE){
+                removeTagsFromView(buttonId, textViewId);
+                deleteCategoryItemFromDb(buttonId, tagName);
+            }else{
+                Toast.makeText(context, "Network is not available or server is not responding", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Thread networkChecking = new Thread() {
+                @Override
+                public void run() {
+                    checkNetworkState();
+                }
+            };
+            networkChecking.start();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+    }
+
 
 }

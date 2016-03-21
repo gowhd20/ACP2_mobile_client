@@ -50,23 +50,12 @@ public class Tags {
         this.activity = activity;
         this.mLocalDB = new LocalDB(context);
         this.countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
+        mLocalDB.close();
         this.mCategory = new CategoryList();
         //mLocalDB.emptyTables();           // for test purpose *******************************//
 
         this.tagNames = new ArrayList<>();
-
-        // category list has been queried before
-        if(ifHasCategories()) {
-            int count = 0;
-            while(categoriesJsonArr.size()>count) {
-                String temp = categoriesJsonArr.get(count).getAsJsonObject().get("category").toString();
-                temp = temp.replace("\"", "");
-                Log.d(TAG, temp);
-                this.tagNames.add(temp);
-                count++;
-            }
-            Log.d(TAG, this.tagNames.toString());
-        }
+        initCategories();
     }
 
     public ArrayList<String> addTags(String name){
@@ -85,6 +74,21 @@ public class Tags {
 
     protected void addTagInfo(String name, Integer id){
 
+    }
+
+    protected void initCategories(){
+        // category list has been queried before
+        if(ifHasCategories()) {
+            int count = 0;
+            while(categoriesJsonArr.size()>count) {
+                String temp = categoriesJsonArr.get(count).getAsJsonObject().get("category").toString();
+                temp = temp.replace("\"", "");
+                Log.d(TAG, temp);
+                this.tagNames.add(temp);
+                count++;
+            }
+            Log.d(TAG, this.tagNames.toString());
+        }
     }
 
     public boolean ifHasCategories(){
@@ -153,6 +157,7 @@ public class Tags {
             countTagsInList = mLocalDB.numberOfRows(LocalDB.DATABASE_TABLE_NAME_TAGS);
             Log.i(TAG, "tag stored in local db");
             Log.i(TAG, "number of tags: " + Integer.toString(countTagsInList));
+            mLocalDB.close();
             return true;
         }else{
             Log.i(TAG, "failed to store tag name into local db");
@@ -182,12 +187,14 @@ public class Tags {
 
                 // store in local db
                 addTagToLocalDB(btnId, tagName);
+                mLocalDB.close();
                 return btnId;
 
             } else {
 
                 // tag name already registered
                 Log.i(TAG, "tag name conflicted in local database");
+                mLocalDB.close();
                 return 0;
 
             }

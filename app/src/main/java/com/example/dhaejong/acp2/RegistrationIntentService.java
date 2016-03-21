@@ -62,10 +62,10 @@ public class RegistrationIntentService extends IntentService {
             // if stored token is not equal to the latest one, update server, local token
             //Log.i(TAG, mSharedPref.getStringFromSP(SystemPreferences.GCM_TOKEN));
             //if(!mSharedPref.getStringFromSP(SystemPreferences.GCM_TOKEN).equals(token)) {
-                sendRegistrationToServer(token);
+
                 // update/save gcm token locally
                 mSharedPref.saveInSp(SystemPreferences.GCM_TOKEN, token);
-
+                sendRegistrationToServer(token);
                 // Subscribe to topic channels
                 subscribeTopics(token);
 
@@ -96,9 +96,15 @@ public class RegistrationIntentService extends IntentService {
      * @param token The new token.
      */
     private void sendRegistrationToServer(String token) {
-        // also when it refreshes
-        HttpRequests mHttpRequests = new HttpRequests(this, token, SystemPreferences.UPDATE_GCM);  // flag 6 -> update gcm token request
-        mHttpRequests.run();
+        if(mSharedPref.getIntFromSP(SystemPreferences.USER_ID)!=0) {
+
+            // also when it refreshes
+            HttpRequests mHttpRequests = new HttpRequests(this, token, SystemPreferences.UPDATE_GCM);  // flag 6 -> update gcm token request
+            mHttpRequests.run();
+        }else{
+            HttpRequests mHttpRequests = new HttpRequests(this, 0, SystemPreferences.REGISTER_USER);         // flag 4 -> register user to the server
+            mHttpRequests.run();
+        }
 
     }
 

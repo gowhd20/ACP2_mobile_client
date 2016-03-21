@@ -2,8 +2,10 @@ package com.example.dhaejong.acp2;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.speech.RecognizerIntent;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -24,12 +26,15 @@ import com.quinny898.library.persistentsearch.SearchBox;
 import com.quinny898.library.persistentsearch.SearchResult;
 import com.quinny898.library.persistentsearch.SearchBox.SearchListener;
 
+import java.io.IOException;
+import java.util.Set;
+
 
 public class SearchTags extends ActionBarActivity {
 
     SearchBox search;
     Tags mTags;
-
+    boolean isCategoriesEmpty = true;
     Context context;
     private static final String TAG = "SearchTags";
 
@@ -99,7 +104,9 @@ public class SearchTags extends ActionBarActivity {
                 Log.d(TAG, mTags.mCategory.toString());
                 int selectedId = mTags.getIdOfCategory(mTags.mCategory.getCategories(), selectedItem);
                 if (selectedId != 0) {
-                    sendBackTagName(selectedItem, selectedId);
+                    BackgroundTask addItemTask =
+                            new BackgroundTask(SearchTags.this, selectedItem, selectedId);
+                    addItemTask.execute();
                 } else {
                     Log.e(TAG, "failed to find id of selected tag");
                 }
@@ -124,6 +131,7 @@ public class SearchTags extends ActionBarActivity {
         search.enableVoiceRecognition(this);
         // if network is available to fetch the category list
         if(!mTags.tagNames.isEmpty()) {
+            isCategoriesEmpty = true;
             // set list of preview items
             for (int i = 0; i < countTags; i++) {
                 if(!mTags.tagNames.get(i).equals("bubble")) {
@@ -133,9 +141,12 @@ public class SearchTags extends ActionBarActivity {
                 }
             }
         }else{
-            SearchResult option = new SearchResult(null,          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
-                    ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
-            search.addSearchable(option);
+            // check if categories are fetched if yes, init again
+            mTags.initCategories();
+            isCategoriesEmpty = false;
+            //SearchResult option = new SearchResult("",          //categoriesJsonArr.get(i).getAsJsonObject().get("category").toString(),
+             //       ContextCompat.getDrawable(context.getApplicationContext(), R.drawable.ic_image_black_24dp));
+            //search.addSearchable(option);
         }
         // menu listener for one at the left top corner
         search.setMenuListener(new SearchBox.MenuListener() {
@@ -163,6 +174,12 @@ public class SearchTags extends ActionBarActivity {
 
             @Override
             public void onSearchTermChanged(String term) {
+                // this will try update category contents if it didn't have one at the first attempt
+                if (!isCategoriesEmpty) {
+                    mTags.initCategories();
+                    setSearchBar(mTags.getNumberOfTags());
+                    isCategoriesEmpty = true;
+                }
                 //React to the search term changing
                 //Called after it has updated results
             }
@@ -174,8 +191,8 @@ public class SearchTags extends ActionBarActivity {
 
             @Override
             public void onResultClick(SearchResult result) {
+                // network check and proceed
                 callDialog(result);
-
             }
 
             @Override
@@ -199,7 +216,25 @@ public class SearchTags extends ActionBarActivity {
             }
         });
 
+    }
 
+    protected boolean checkNetworkState(){
+        httpNetwork mHttpNetwork = new httpNetwork(this);
+        try {
+            String response = mHttpNetwork.getRequest(SystemPreferences.GET_CATEGORIES_URL);
+            if(response != null) {
+                httpService.NETWORK_AVAILABLE = true;
+                return true;
+            }else{
+                httpService.NETWORK_AVAILABLE = false;
+                return false;
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+            Log.e(TAG, "get failed");
+            httpService.NETWORK_AVAILABLE = false;
+            return false;
+        }
     }
 
     protected void sendBackTagName(String tagName, int tagId){
@@ -213,5 +248,52 @@ public class SearchTags extends ActionBarActivity {
         finish();
     }
 
+    private class BackgroundTask extends AsyncTask<Void, Void, Void> {
+        private ProgressDialog dialog;
+        private String selectedItem;
+        private int selectedId;
+        public BackgroundTask(SearchTags activity, String tagName, int id) {
+            dialog = new ProgressDialog(activity);
+            selectedItem = tagName;
+            selectedId = id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Sending request...");
+            dialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            if(httpService.NETWORK_AVAILABLE) {
+                sendBackTagName(selectedItem, selectedId);
+            }else{
+                Toast.makeText(context, "Network is not available or server is not responding", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Thread networkChecking = new Thread() {
+                @Override
+                public void run() {
+                    checkNetworkState();
+                }
+            };
+            networkChecking.start();
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+    }
 
 }

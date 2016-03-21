@@ -72,7 +72,7 @@ public class MyGcmListenerService extends GcmListenerService {
          *     - Update UI.
          */
 
-        if(data.getString("collapse_key").equals(SystemPreferences.DATA_NOT_COLLAPSED)){
+        //if(data.getString("collapse_key").equals(SystemPreferences.DATA_NOT_COLLAPSED)){
             /** Respect order of inserting data into db!!
             *  id
             *  title
@@ -143,9 +143,9 @@ public class MyGcmListenerService extends GcmListenerService {
             // store into local db
             storeReceivedEvent();
 
-        }else{
-            Log.e(TAG, "data server pushed has collapsed");
-        }
+        //}else{
+        //    Log.e(TAG, "data server pushed has collapsed");
+        //}
 
         // send refresh action to event listview activity
         Intent refreshIntent = new Intent(REFRESH_ACTION);
@@ -198,7 +198,7 @@ public class MyGcmListenerService extends GcmListenerService {
         }else{
             sendNotification("This item is already in your history!!", eventArr.get(1));
         }
-
+        mLocalDB.close();
     }
 
 
