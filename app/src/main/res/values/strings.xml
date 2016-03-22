@@ -18,7 +18,7 @@
     <string name="checkbox_text">Connect with my Calendar events</string>
 
 
-    <string name="gcm_send_message">Google token retrieved and sent to the server!</string>
+    <string name="gcm_send_message">Google token retrieved and now sent to the server!</string>
     <string name="token_error_message">An error occurred while either fetching the InstanceID token,
     sending the fetched token to the server or subscribing to the PubSub topic. Please try
     running the sample again.</string>
