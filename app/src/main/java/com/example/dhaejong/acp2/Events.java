@@ -8,6 +8,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.media.Image;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
@@ -34,10 +37,14 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +55,7 @@ public class Events extends ActionBarActivity {
 
     Context context = this;
     LocalDB mLocalDB;
+    GPSListener mGPSListener;
     // TODO: clear history needs to be implemented
 
     private List<String> getData(){
@@ -210,7 +218,7 @@ public class Events extends ActionBarActivity {
     }
 
 
-    private RelativeLayout addGoogleMapBtn(String address){
+    private RelativeLayout addGoogleMapBtn(String address, final Hashtable hash){
         RelativeLayout mapBtnLayout = new RelativeLayout(this);
         ImageButton googleMapBtn = new ImageButton(this);
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -218,13 +226,29 @@ public class Events extends ActionBarActivity {
         googleMapBtn.setTag(address);
         googleMapBtn.setImageResource(R.drawable.ic_google_map_icon);
         googleMapBtn.setBackgroundColor(Color.TRANSPARENT);
+
         googleMapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Object city = "";
+                Object country = "";
+                if(hash.containsKey("country_name") && hash.get("country_name") != null) {
+                    city = hash.get("country_name");
+                }
+
+                if(hash.containsKey("locality") && hash.get("locality") != null) {
+                    country = hash.get("locality");
+                }
+
                 if (isGoogleMapsInstalled()) {
                     // if this mobile app has google map application
                     Object obj = v.getTag();
-                    Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + obj.toString()+" "+ SystemPreferences.CURRENT_CITY_OF_USERS));
+                    Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" +
+                            obj.toString() + " " +
+                            city.toString() + " " +
+                            country.toString()));
+
                     startActivity(searchAddress);
                 } else {
                     // if this mobile has not google map application, run my custom google map
@@ -269,6 +293,35 @@ public class Events extends ActionBarActivity {
         return links;
     }
 
+    public Hashtable getAddress(double lat, double lon) {
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            Hashtable mhash = new Hashtable();
+            try {
+                List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
+                Address obj = addresses.get(0);
+                try{
+                    mhash.put("address", obj.getAddressLine(0));
+                }catch(NullPointerException e){
+                    Log.d(TAG, "address is not obtained");
+                }
+                try {
+                    mhash.put("country_name", obj.getCountryName());
+                }catch(NullPointerException e){
+                    Log.d(TAG, "country name is not obtained");
+                }
+                try{
+                    mhash.put("locality", obj.getLocality());
+                }catch(NullPointerException e){
+                    Log.d(TAG, "locality is not obtained");
+                }
+
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return mhash;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -282,6 +335,19 @@ public class Events extends ActionBarActivity {
         selectedAllInfo = mLocalDB.getAllItemsById(Integer.valueOf(selectedInfo.get(0)), LocalDB.DATABASE_TABLE_NAME_EVENTS);
 
         Log.d(TAG, selectedAllInfo.toString());
+
+        // get locality from previously stored lat, lon
+        Location location;
+        mGPSListener = new GPSListener(this);
+        location = mGPSListener.getLocation();
+
+        Hashtable mHash = new Hashtable();
+        try {
+            mHash = getAddress(location.getLatitude(),
+                    location.getLongitude());
+        }catch(NullPointerException e){
+            Log.i(TAG, "known gps info not exist");
+        }
 
         // title
         if(!selectedAllInfo.get(7).isEmpty()){
@@ -313,7 +379,7 @@ public class Events extends ActionBarActivity {
         }
         // location map
         if(!selectedAllInfo.get(4).isEmpty()){
-            mainLayout.addView(addGoogleMapBtn(selectedAllInfo.get(4)));
+            mainLayout.addView(addGoogleMapBtn(selectedAllInfo.get(4), mHash));
         }
     }
 
@@ -350,6 +416,18 @@ public class Events extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
     }
 
     public class CropSquareTransformation implements Transformation {
