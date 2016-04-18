@@ -38,10 +38,15 @@ public class MainActivity extends ActionBarActivity {
     Tags mTags;
     EnableGcm mGcm;
 
+    private Intent wifiIntent;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        wifiIntent = new Intent(this, WifiScannerService.class);
+        startService(wifiIntent);
 
         View mainView = findViewById(R.id.mainActivity);
         mainView.setOnClickListener(new View.OnClickListener() {
